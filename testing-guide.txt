@@ -1,0 +1,345 @@
+────────────────────────────────────────────────────────────────
+  STORYLINE BLUEPRINT — END-TO-END TEST GUIDE
+  Test course: "Data Privacy at Work"
+  Covers all 5 stages, all major features
+────────────────────────────────────────────────────────────────
+
+PRE-FLIGHT
+──────────
+1. Open the Storyline Blueprint artifact.
+2. Go to Settings (gear icon or Settings tab on the sidebar).
+3. Set your preferred AI provider:
+   · Claude  → paste your Anthropic API key (sk-ant-...)
+   · OpenAI  → paste your OpenAI API key (sk-...)
+   · Gemini  → paste your Google AI key (AI...)
+4. Confirm the key is accepted (the status indicator should
+   go green / say "Connected").
+5. Keep your browser console open (F12 → Console) so you
+   can spot any API or JSON parse errors.
+
+─────────────────────────────────────────────────────────────
+STAGE 1 — INGEST STORYBOARD
+─────────────────────────────────────────────────────────────
+
+WHAT TO DO
+  · In the Ingest stage, choose "Paste storyboard text".
+  · Copy the ENTIRE contents of test-storyboard.txt
+    (from "COURSE OVERVIEW" to "END OF STORYBOARD").
+  · Paste it into the text area.
+
+THEORY SELECTION
+  · Primary Theory: Gagné's Nine Events of Instruction
+    (under "ID Models" in the dropdown)
+  · Secondary Theory: Cognitive Load Theory
+    (under "Evaluation / Cognitive")
+  · Click "Analyse Storyboard".
+
+WHAT TO LOOK FOR — Stage 1 output card:
+  ✓ can_proceed: true
+  ✓ confidence: "HIGH" or "MEDIUM" (not LOW)
+  ✓ branching_detected: true
+       (Slide 2.2 has 3 paths)
+  ✓ interaction_types_detected includes at least:
+       "branching scenario", "multiple choice", "quiz"
+  ✓ scene_count_estimate: 3
+  ✓ slide_count_estimate: 15–20 (tool estimates from text)
+  ✓ objectives_found: 3
+  ✓ theory_fit mentions Gagné or events-based design
+  ✓ summary is a coherent 2–3 sentence description
+       of the course
+  ✓ gaps array may flag minor items (acceptable);
+       severity should NOT be "BLOCK" on a clean storyboard
+
+RED FLAGS (investigate if you see these):
+  ✗ can_proceed: false → check API key + model
+  ✗ JSON parse error in console → model returned prose;
+       try rephrasing or switching model
+  ✗ branching_detected: false → storyboard didn't convey
+       Slide 2.2's branch clearly enough
+
+AUTOMATIC TRANSITION
+  Stage 1 auto-advances to Stage 2 if can_proceed is true.
+  You should see the Mapper stage unlock and open.
+
+─────────────────────────────────────────────────────────────
+STAGE 2 — SLIDE PLAN MAPPER
+─────────────────────────────────────────────────────────────
+
+WHAT HAPPENS
+  · AI runs automatically after Stage 1 passes.
+  · No input needed. Watch the slide plan table build.
+
+WHAT TO LOOK FOR — Slide plan table:
+  ✓ 3 scenes created:
+       Scene 1: Introduction (3 slides)
+       Scene 2: The Scenario (9 slides)
+       Scene 3: Knowledge Check (7 slides)
+  ✓ Total slide count: 19 (±1 — model may split/merge)
+  ✓ Slide 2.2 flagged as: is_branch_node: true
+  ✓ Slides 1.3, 2.4, 3.1–3.7 flagged: needs_variables: true
+  ✓ Slides 2.3, 2.5, 2.7, 2.8 flagged:
+       interaction = "FEEDBACK" or "CONTENT"
+  ✓ Slides 3.2–3.6 flagged:
+       interaction = "QUIZ" or "GRADED"
+  ✓ theory_tag present on most slides (e.g. "1-Attention",
+       "2-Objectives", "7-Feedback", "8-Assessment")
+
+GAGNÉ COVERAGE CHART (below the table)
+  ✓ All 9 events should appear
+  ✓ Covered events: at minimum 7 of 9
+       (Events 1–8 are all represented; Event 9 may be
+        partial — Slide 3.7 touches it)
+  ✓ Coverage bar shows ≥77%
+  ✓ Events missing typically: "5-Guidance" (acceptable if
+       the tool merged it into Content slides)
+
+EDIT TEST (optional — tests manual editing)
+  · Click on any slide title cell and edit it.
+  · Change "Priya's Decision" → "Priya Decides".
+  · Click elsewhere; confirm the edit sticks.
+  · Click "Proceed to Stage 3" to advance.
+
+─────────────────────────────────────────────────────────────
+STAGE 3 — VARIABLES & TRIGGERS PLANNER
+─────────────────────────────────────────────────────────────
+
+WHAT HAPPENS
+  · Tool filters the 19 slides down to those that
+    need variables or have interactions.
+  · Expected filtered set: 10–13 slides
+    (all slides with needs_variables=true,
+     interaction≠NONE, or is_branch_node=true)
+  · AI call runs on this filtered set only (token-efficient).
+
+WHAT TO LOOK FOR — Variable Register:
+  ✓ At minimum these 8 variables present:
+       nDecisionAttempt  Number   0   course
+       sUserChoice       Text     ""  course
+       bScenarioPassed   T/F    False  course
+       nQuizScore        Number   0   course
+       nQuizAttempt      Number   0   course
+       bQuizPassed       T/F    False  course
+       sCheckedItems     Text     ""  course
+       (bonus: nAttempts or similar for question retries)
+  ✓ Naming convention respected:
+       n prefix for numbers, b for booleans, s for text
+       camelCase throughout
+  ✓ scope column: "course" for all shared variables
+
+WHAT TO LOOK FOR — Trigger Accordion:
+  ✓ Slide 2.2 (branch node) has triggers for all 3 choices:
+       "When user clicks Choice A → Jump to slide 2.3"
+       "When user clicks Choice B → Jump to slide 2.5"
+       "When user clicks Choice C → Jump to slide 2.7"
+  ✓ Slide 2.4 (retry) has:
+       "When timeline starts → Add 1 to nDecisionAttempt"
+       "When user clicks Retry → Jump to slide 2.2"
+  ✓ Slide 2.5 (correct path) has:
+       "When timeline starts → Set bScenarioPassed = True"
+  ✓ At least one slide (3.2–3.6) has:
+       "When user submits correct answer →
+        Add 1 to nQuizScore"
+  ✓ Slide 3.7 (results) has conditional triggers:
+       "If nQuizScore ≥ 4 → Set bQuizPassed = True"
+       "If bQuizPassed = True → Jump to pass slide / complete"
+
+RED FLAGS:
+  ✗ Variables use spaces or wrong prefix
+       (e.g. "quiz score" instead of "nQuizScore")
+       → note for Stage 5 export review
+  ✗ Branch triggers missing on Slide 2.2 →
+       model may have missed the branch; check prompt
+
+─────────────────────────────────────────────────────────────
+STAGE 4 — BRANCHING LOGIC VALIDATOR
+─────────────────────────────────────────────────────────────
+
+STEP 1 — Branch Path Confirmation Form
+  You will see a form listing Slide 2.2 as the branch node.
+  Fill in the path destinations:
+
+  Branch node: Slide 2.2
+  ┌─────────────────────────────────────────────────────┐
+  │ Path 1 label:  "Forward without checking (risky)"   │
+  │ Destination:    2.3                                 │
+  │                                                     │
+  │ Path 2 label:  "Verify vendor first (correct)"      │
+  │ Destination:    2.5                                 │
+  │                                                     │
+  │ Path 3 label:  "Escalate to manager (partial)"      │
+  │ Destination:    2.7                                 │
+  └─────────────────────────────────────────────────────┘
+  Click "Validate Branching Logic".
+
+STEP 2 — Validation Results
+  WHAT TO LOOK FOR:
+  ✓ overall_status: "PASS" or "WARN" (not BLOCK)
+  ✓ branch_nodes_checked: 1 (only Slide 2.2)
+  ✓ total_paths_checked: 3
+  ✓ issues_block: 0
+  ✓ Validated paths section shows all 3 paths as valid:
+       Path 1 (risky) → 2.2 → 2.3 → 2.4 → back to 2.2 ✓
+       Path 2 (correct) → 2.2 → 2.5 → 2.6 ✓
+       Path 3 (partial) → 2.2 → 2.7 → 2.8 → 2.6 ✓
+
+  POSSIBLE WARNINGS (acceptable):
+  ⚠ WARN: Path 1 loops back to branch node — this is
+    intentional (retry design), so you can ignore it
+  ⚠ NOTE: Path 2 and Path 3 merge at Slide 2.6 —
+    this is intentional (merge path)
+
+  RED FLAGS (should not appear):
+  ✗ BLOCK: DEAD_END on Path 1 → means 2.4 retry
+    trigger wasn't captured correctly in Stage 3
+  ✗ BLOCK: MISSING_FEEDBACK on any path → means a
+    feedback slide is absent
+  ✗ ORPHANED_SLIDE → check slide IDs in the storyboard
+
+  EXPORT GATE TEST:
+  · If 0 BLOCK issues: "Proceed to Export" button
+    should be ENABLED (green/active).
+  · To test the gate: edit the validation JSON
+    (developer test only) or just confirm the button
+    is active and click it.
+
+─────────────────────────────────────────────────────────────
+STAGE 5 — EXPORT BLUEPRINT
+─────────────────────────────────────────────────────────────
+
+After clicking "Proceed to Export", you should land on
+the Export stage with 6 tabs pre-populated.
+
+TAB 1 — OVERVIEW
+  ✓ Course title matches storyboard
+  ✓ Date is today's date
+  ✓ Total scenes: 3, Total slides: 18–20
+  ✓ Primary theory: Gagné's Nine Events of Instruction
+  ✓ Secondary theory: Cognitive Load Theory
+  ✓ Storyboard analysis summary is present
+  ✓ Theory note (Gagné export_note) is present
+
+TAB 2 — SLIDE MAP
+  ✓ All 3 scenes listed
+  ✓ Slide 2.2 shows [BRANCH] flag
+  ✓ Slides with needs_variables show [VAR] flag
+  ✓ theory_tag column populated on most slides
+  ✓ Gagné coverage table at the bottom
+       (coverage % + ✓/✗ per event)
+
+TAB 3 — VARIABLES
+  ✓ Table with all 8+ variables
+  ✓ Columns: NAME / TYPE / DEFAULT / SCOPE / USED IN
+  ✓ Naming conventions guide at the bottom
+  ✓ Click Copy → paste into a text editor;
+       verify it matches what's visible
+
+TAB 4 — TRIGGERS
+  ✓ Slide 2.2 accordion shows 3 trigger entries
+  ✓ Trigger anatomy: When / Object / Condition / Action
+  ✓ Slide 3.7 shows conditional results triggers
+  ✓ Click Copy on this section
+
+TAB 5 — VALIDATION
+  ✓ Overall status visible
+  ✓ Issue list (or "No issues found")
+  ✓ All 3 validated paths listed
+  ✓ Click Copy → verify clipboard
+
+TAB 6 — BUILD CHECKLIST
+  ✓ 9 sections present (Project Setup through Publish)
+  ✓ Variable list in Section 2 matches Tab 3
+  ✓ Interactive slides listed in Section 4
+  ✓ Branch paths listed in Section 6
+  ✓ Checkboxes are clickable; checked items fade
+  ✓ Theory QA item mentions Gagné in Section 8
+
+COPY ALL TEST
+  · Click "Copy All" button (top right of export stage)
+  · Paste into a plain text editor
+  · Confirm it contains all 5 sections in order:
+       1. STORYLINE BLUEPRINT header + overview
+       2. SLIDE MAP section
+       3. MASTER VARIABLE REGISTER section
+       4. TRIGGER ARCHITECTURE section
+       5. BRANCHING LOGIC VALIDATION REPORT
+  · Build Checklist is intentionally excluded from
+       Copy All (interactive checkboxes don't copy well)
+
+DOWNLOAD TEST (local file only — not in artifact preview)
+  · Click "Download .txt"
+  · In the artifact preview, the download may be blocked
+    (browser sandbox limitation in the viewer).
+  · To test download: open the artifact URL directly in
+    a new browser tab (not embedded), then click Download.
+  · Expected filename: data-privacy-at-work-blueprint.txt
+
+─────────────────────────────────────────────────────────────
+REGRESSION — SETTINGS & NAVIGATION
+─────────────────────────────────────────────────────────────
+
+  · After export, click "< Back to Validator" or use
+    the sidebar to go back to Stage 4.
+  · Navigate back to Stage 2 (Mapper).
+       Confirm slide plan is still present.
+  · Navigate to Stage 3 (Planner).
+       Confirm variable register is still present.
+  · Navigate back to Stage 1.
+       Confirm you cannot skip forward to Stage 5
+       directly (Export tab should be greyed if
+       Stage 4 not complete).
+
+─────────────────────────────────────────────────────────────
+QUICK SMOKE TEST — MINIMAL STORYBOARD
+─────────────────────────────────────────────────────────────
+
+If you want to also test a minimal / edge-case flow,
+paste this ultra-short storyboard instead:
+
+  "Title: Fire Safety Basics
+   Slide 1: Introduction — What is a fire hazard?
+   Slide 2: Types of fire extinguishers (video)
+   Slide 3: Knowledge check — which extinguisher for
+             which fire? (3 questions)
+   Slide 4: Summary and certificate."
+
+  Theory: Microlearning Principles (Tier 2)
+
+  Expected outcomes:
+  · Stage 1: can_proceed true, LOW/MEDIUM confidence
+  · Stage 2: 4 slides, 1 scene, no branching
+  · Stage 3: minimal variables (maybe nQuizScore only)
+  · Stage 4: "No branch nodes found" message;
+              Proceed to Export still enabled
+  · Stage 5: Valid export with thin but complete content
+
+─────────────────────────────────────────────────────────────
+KNOWN LIMITATIONS (not bugs)
+─────────────────────────────────────────────────────────────
+
+1. Download button is blocked inside the artifact preview
+   frame — works when opened directly in a browser tab.
+
+2. Slide plan manual edits (Stage 2) are stored in
+   state.slidePlan in memory only. Refreshing the page
+   resets everything — by design (no persistence by default).
+
+3. Stage 4 branch path form asks for slide IDs manually.
+   This is intentional — the developer always knows their
+   own course structure better than the AI.
+
+4. API calls go directly from the browser to the AI
+   provider. If you see a CORS error, your provider's
+   API may not allow browser-direct calls on your plan.
+   Claude API: requires the
+     anthropic-dangerous-direct-browser-access: true header
+     (already set in the tool).
+   OpenAI: works browser-direct.
+   Gemini: works browser-direct with API key in URL.
+
+5. Very long storyboards (>5000 words) may hit token
+   limits in Stage 2. Split into scenes and run per-scene
+   if needed.
+
+────────────────────────────────────────────────────────────────
+  END OF TEST GUIDE
+────────────────────────────────────────────────────────────────

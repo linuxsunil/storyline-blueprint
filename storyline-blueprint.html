@@ -1,0 +1,2919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Storyline Blueprint</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* ── TOKENS ─────────────────────────────────────────────────────────── */
+/* Layout: left sidebar (stages) + main content area, single-page app   */
+:root {
+  --bg:         #f7f7f5;
+  --bg-panel:   #ffffff;
+  --bg-subtle:  #f0f0ec;
+  --border:     #e2e1db;
+  --border-mid: #cccac2;
+  --fg:         #1a1917;
+  --fg-mid:     #4a4845;
+  --fg-muted:   #8a8780;
+  --accent:     #2a5cf6;
+  --accent-bg:  #eef2fe;
+  --accent-mid: #93a9fb;
+  --gold:       #c8871a;
+  --gold-bg:    #fef7ec;
+  --green:      #1a7a3f;
+  --green-bg:   #edf7f1;
+  --red:        #c0392b;
+  --red-bg:     #fdf0ee;
+  --amber:      #b45309;
+  --amber-bg:   #fef3e2;
+  --radius:     8px;
+  --radius-lg:  12px;
+  --shadow:     0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:  0 4px 12px rgba(0,0,0,.10), 0 2px 4px rgba(0,0,0,.06);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:         #131312;
+    --bg-panel:   #1e1e1c;
+    --bg-subtle:  #252522;
+    --border:     #2e2e2b;
+    --border-mid: #3d3d39;
+    --fg:         #f0efea;
+    --fg-mid:     #b0afa8;
+    --fg-muted:   #706f69;
+    --accent:     #5b81fa;
+    --accent-bg:  #1a2340;
+    --accent-mid: #3a5cd6;
+    --gold:       #e09f35;
+    --gold-bg:    #2a200a;
+    --green:      #3dba6e;
+    --green-bg:   #0d2318;
+    --red:        #e05c4e;
+    --red-bg:     #2a100e;
+    --amber:      #d97706;
+    --amber-bg:   #261a06;
+    --shadow:     0 1px 3px rgba(0,0,0,.3);
+    --shadow-md:  0 4px 12px rgba(0,0,0,.4);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg:         #131312;
+  --bg-panel:   #1e1e1c;
+  --bg-subtle:  #252522;
+  --border:     #2e2e2b;
+  --border-mid: #3d3d39;
+  --fg:         #f0efea;
+  --fg-mid:     #b0afa8;
+  --fg-muted:   #706f69;
+  --accent:     #5b81fa;
+  --accent-bg:  #1a2340;
+  --accent-mid: #3a5cd6;
+  --gold:       #e09f35;
+  --gold-bg:    #2a200a;
+  --green:      #3dba6e;
+  --green-bg:   #0d2318;
+  --red:        #e05c4e;
+  --red-bg:     #2a100e;
+  --amber:      #d97706;
+  --amber-bg:   #261a06;
+  --shadow:     0 1px 3px rgba(0,0,0,.3);
+  --shadow-md:  0 4px 12px rgba(0,0,0,.4);
+  color-scheme: dark;
+}
+
+/* ── RESET ───────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  font-size: 14px;
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  padding-left: max(0px, env(safe-area-inset-left, 0px));
+  padding-right: max(0px, env(safe-area-inset-right, 0px));
+}
+
+/* ── LAYOUT ──────────────────────────────────────────────────────────── */
+.app { display: flex; flex: 1; min-height: 0; overflow: hidden; }
+
+/* Sidebar */
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+.sidebar-header {
+  padding: 20px 16px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-logo {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--fg);
+  letter-spacing: -.3px;
+}
+.sidebar-logo span { color: var(--accent); }
+.sidebar-sub {
+  font-size: 11px;
+  color: var(--fg-muted);
+  margin-top: 2px;
+}
+.stage-nav { padding: 12px 8px; flex: 1; }
+.stage-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background .15s;
+  position: relative;
+  margin-bottom: 2px;
+}
+.stage-item:hover { background: var(--bg-subtle); }
+.stage-item.active { background: var(--accent-bg); }
+.stage-item.active .stage-label { color: var(--accent); font-weight: 600; }
+.stage-item.done .stage-num { background: var(--green); color: white; }
+.stage-item.done .stage-num::after { content: '✓'; }
+.stage-item.locked { opacity: .4; pointer-events: none; }
+.stage-num {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--bg-subtle);
+  border: 1.5px solid var(--border-mid);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  font-family: 'Space Grotesk', sans-serif;
+  color: var(--fg-muted);
+}
+.stage-item.active .stage-num { background: var(--accent); border-color: var(--accent); color: white; }
+.stage-label { font-size: 12.5px; color: var(--fg-mid); }
+.stage-connector {
+  width: 1.5px; height: 10px;
+  background: var(--border);
+  margin: 0 auto 2px;
+  margin-left: 18px;
+}
+
+/* Main */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+.topbar {
+  height: 52px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  background: var(--bg-panel);
+  flex-shrink: 0;
+}
+.topbar-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fg);
+}
+.topbar-actions { display: flex; gap: 8px; align-items: center; }
+.content { flex: 1; overflow-y: auto; padding: 24px 24px; }
+
+/* ── COMPONENTS ──────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px;
+  border-radius: var(--radius);
+  font-size: 13px; font-weight: 600;
+  cursor: pointer; border: none;
+  transition: all .15s;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn-primary { background: var(--accent); color: white; }
+.btn-primary:hover:not(:disabled) { filter: brightness(1.1); }
+.btn-secondary { background: var(--bg-subtle); color: var(--fg); border: 1px solid var(--border-mid); }
+.btn-secondary:hover:not(:disabled) { background: var(--border); }
+.btn-ghost { background: transparent; color: var(--fg-mid); border: 1px solid var(--border); }
+.btn-ghost:hover:not(:disabled) { background: var(--bg-subtle); }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-icon { padding: 6px; }
+
+.card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+}
+.card + .card { margin-top: 16px; }
+
+.label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  margin-bottom: 6px;
+}
+.field-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 14px; }
+.field-label { font-size: 12px; font-weight: 600; color: var(--fg-mid); }
+input[type="text"], input[type="password"], textarea, select {
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-mid);
+  border-radius: var(--radius);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+  transition: border-color .15s;
+}
+input[type="text"]:focus, input[type="password"]:focus,
+textarea:focus, select:focus { border-color: var(--accent); }
+textarea { resize: vertical; min-height: 180px; line-height: 1.6; }
+select option { background: var(--bg-panel); }
+
+.badge {
+  display: inline-flex; align-items: center;
+  padding: 2px 8px; border-radius: 20px;
+  font-size: 11px; font-weight: 600;
+}
+.badge-blue   { background: var(--accent-bg); color: var(--accent); }
+.badge-green  { background: var(--green-bg);  color: var(--green); }
+.badge-red    { background: var(--red-bg);    color: var(--red); }
+.badge-amber  { background: var(--amber-bg);  color: var(--amber); }
+.badge-gold   { background: var(--gold-bg);   color: var(--gold); }
+.badge-muted  { background: var(--bg-subtle); color: var(--fg-muted); }
+
+.alert {
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  display: flex; gap: 10px; align-items: flex-start;
+  margin-bottom: 14px;
+}
+.alert-warn  { background: var(--amber-bg); border: 1px solid var(--amber); color: var(--amber); }
+.alert-info  { background: var(--accent-bg); border: 1px solid var(--accent-mid); color: var(--accent); }
+.alert-error { background: var(--red-bg); border: 1px solid var(--red); color: var(--red); }
+.alert-ok    { background: var(--green-bg); border: 1px solid var(--green); color: var(--green); }
+.alert-icon  { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+.alert-body  { flex: 1; }
+.alert-body strong { display: block; font-weight: 600; margin-bottom: 2px; }
+
+.spinner {
+  width: 16px; height: 16px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* API key input row */
+.api-row { display: flex; gap: 8px; align-items: center; }
+.api-row input { flex: 1; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+
+/* Theory picker */
+.theory-picker { display: flex; flex-direction: column; gap: 12px; }
+.theory-category { }
+.theory-category-label {
+  font-size: 11px; font-weight: 700; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--fg-muted);
+  margin-bottom: 6px; display: flex; align-items: center; gap: 6px;
+}
+.theory-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.theory-chip {
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border-mid);
+  background: var(--bg-subtle);
+  font-size: 12px; color: var(--fg-mid);
+  cursor: pointer; transition: all .15s;
+  user-select: none;
+}
+.theory-chip:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
+.theory-chip.selected-primary { border-color: var(--accent); background: var(--accent); color: white; }
+.theory-chip.selected-secondary { border-color: var(--gold); background: var(--gold-bg); color: var(--gold); }
+.theory-chip.tier2 { opacity: .85; }
+.theory-chip.tier3 { opacity: .7; }
+.theory-legend { display: flex; gap: 14px; margin-top: 10px; flex-wrap: wrap; }
+.legend-item { font-size: 11px; color: var(--fg-muted); display: flex; align-items: center; gap: 5px; }
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+/* Selected theory card */
+.theory-selected-card {
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-mid);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin-top: 12px;
+}
+.theory-selected-card h4 { font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 4px; }
+.theory-selected-card p { font-size: 12px; color: var(--fg-mid); line-height: 1.6; }
+.theory-stage-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+
+/* Slide plan table */
+.slide-table-wrap { overflow-x: auto; }
+.slide-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 12.5px; min-width: 700px;
+}
+.slide-table th {
+  text-align: left; font-size: 11px; font-weight: 600;
+  letter-spacing: .05em; text-transform: uppercase;
+  color: var(--fg-muted);
+  padding: 8px 10px;
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+}
+.slide-table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.slide-table tr:hover td { background: var(--bg-subtle); }
+.slide-table input, .slide-table select {
+  padding: 4px 8px; font-size: 12px;
+  min-height: 0; width: 100%;
+  background: transparent; border: 1px solid transparent;
+}
+.slide-table input:focus, .slide-table select:focus {
+  background: var(--bg-panel);
+  border-color: var(--accent);
+}
+.scene-row td { background: var(--bg-subtle); font-weight: 700; font-size: 12px; }
+.flag-cell { display: flex; gap: 4px; }
+.flag-btn {
+  width: 22px; height: 22px; border-radius: 4px;
+  border: 1.5px solid var(--border-mid);
+  background: var(--bg-subtle);
+  font-size: 11px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .12s; color: var(--fg-muted);
+}
+.flag-btn.on { border-color: var(--accent); background: var(--accent-bg); color: var(--accent); }
+.flag-btn.on-var { border-color: var(--gold); background: var(--gold-bg); color: var(--gold); }
+.flag-btn.on-branch { border-color: var(--green); background: var(--green-bg); color: var(--green); }
+
+/* Theory coverage */
+.coverage-wrap { margin-top: 16px; }
+.coverage-title { font-size: 12px; font-weight: 700; color: var(--fg-mid); margin-bottom: 8px; }
+.coverage-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.coverage-event { font-size: 12px; color: var(--fg-mid); width: 220px; flex-shrink: 0; }
+.coverage-bar-wrap { flex: 1; height: 6px; background: var(--bg-subtle); border-radius: 3px; overflow: hidden; }
+.coverage-bar { height: 100%; border-radius: 3px; }
+.coverage-bar.covered { background: var(--green); }
+.coverage-bar.missing { background: var(--border-mid); }
+.coverage-status { font-size: 11px; width: 60px; text-align: right; }
+
+/* Compliance summary */
+.compliance-summary {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-top: 14px;
+  display: flex; gap: 20px; flex-wrap: wrap;
+}
+.compliance-stat { text-align: center; }
+.compliance-num { font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 700; }
+.compliance-lbl { font-size: 11px; color: var(--fg-muted); }
+
+/* Loading overlay */
+.loading-overlay {
+  position: absolute; inset: 0;
+  background: rgba(var(--bg-rgb, 247,247,245), .85);
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 12px;
+  z-index: 10; border-radius: var(--radius-lg);
+}
+.loading-text { font-size: 13px; color: var(--fg-mid); font-weight: 500; }
+
+/* Stage screen */
+.stage-screen { display: none; }
+.stage-screen.active { display: block; }
+
+.stage-heading {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 20px; font-weight: 700;
+  color: var(--fg); margin-bottom: 4px;
+}
+.stage-desc { font-size: 13px; color: var(--fg-muted); margin-bottom: 20px; }
+
+/* Tabs */
+.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+.tab-btn {
+  padding: 8px 14px; font-size: 13px; font-weight: 500;
+  color: var(--fg-muted); cursor: pointer;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: all .15s; background: none; border-top: none;
+  border-left: none; border-right: none; font-family: inherit;
+}
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* Divider */
+.divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+/* Empty state */
+.empty-state {
+  text-align: center; padding: 48px 24px;
+  color: var(--fg-muted);
+}
+.empty-state svg { opacity: .3; margin-bottom: 12px; }
+.empty-state p { font-size: 13px; }
+
+/* Stage 0 — settings */
+#stage-settings .model-select-row {
+  display: flex; gap: 10px; flex-wrap: wrap;
+}
+.model-btn {
+  flex: 1; min-width: 120px;
+  padding: 10px 12px; border-radius: var(--radius);
+  border: 2px solid var(--border-mid);
+  background: var(--bg-subtle);
+  cursor: pointer; text-align: left;
+  transition: all .15s;
+  font-family: inherit;
+}
+.model-btn:hover { border-color: var(--accent-mid); }
+.model-btn.selected { border-color: var(--accent); background: var(--accent-bg); }
+.model-btn-name { font-size: 13px; font-weight: 600; color: var(--fg); }
+.model-btn-id { font-size: 10px; color: var(--fg-muted); font-family: 'JetBrains Mono', monospace; margin-top: 2px; }
+
+@media (max-width: 680px) {
+  .sidebar { width: 56px; }
+  .sidebar-logo, .sidebar-sub, .stage-label, .sidebar-header p { display: none; }
+  .stage-num { margin: 0 auto; }
+  .stage-item { justify-content: center; padding: 10px 0; }
+  .content { padding: 16px; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">Story<span>Blue</span></div>
+      <div class="sidebar-sub">Pre-Authoring Pipeline</div>
+    </div>
+    <div class="stage-nav">
+      <div class="stage-item active" data-stage="ingest" onclick="goStage('ingest')">
+        <div class="stage-num">1</div>
+        <span class="stage-label">Ingest</span>
+      </div>
+      <div class="stage-connector"></div>
+      <div class="stage-item locked" data-stage="mapper" onclick="goStage('mapper')">
+        <div class="stage-num">2</div>
+        <span class="stage-label">Mapper</span>
+      </div>
+      <div class="stage-connector"></div>
+      <div class="stage-item locked" data-stage="planner" onclick="goStage('planner')">
+        <div class="stage-num">3</div>
+        <span class="stage-label">Planner</span>
+      </div>
+      <div class="stage-connector"></div>
+      <div class="stage-item locked" data-stage="validator" onclick="goStage('validator')">
+        <div class="stage-num">4</div>
+        <span class="stage-label">Validator</span>
+      </div>
+      <div class="stage-connector"></div>
+      <div class="stage-item locked" data-stage="export" onclick="goStage('export')">
+        <div class="stage-num">5</div>
+        <span class="stage-label">Export</span>
+      </div>
+      <hr class="divider" style="margin:14px 0">
+      <div class="stage-item" onclick="goStage('settings')">
+        <div class="stage-num" style="font-size:13px">⚙</div>
+        <span class="stage-label">Settings</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="topbar-title">Stage 1 — Ingest Storyboard</div>
+      <div class="topbar-actions">
+        <span id="topbar-status" style="font-size:12px;color:var(--fg-muted)"></span>
+        <button class="btn btn-ghost btn-sm" onclick="goStage('settings')">⚙ Settings</button>
+      </div>
+    </div>
+    <div class="content" id="main-content">
+
+      <!-- ═══ STAGE 1: INGEST ═══ -->
+      <div class="stage-screen active" id="stage-ingest">
+        <div class="stage-heading">Paste Your Storyboard</div>
+        <div class="stage-desc">Paste your storyboard text, then select a primary learning theory. The pipeline will analyze and map it into a Storyline build plan.</div>
+
+        <div class="card">
+          <div class="label">Storyboard Content</div>
+          <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab(this,'tab-paste')">Paste Text</button>
+            <button class="tab-btn" onclick="switchTab(this,'tab-guided')">Guided Entry</button>
+          </div>
+          <div class="tab-panel active" id="tab-paste">
+            <div class="field-row">
+              <div class="field-label">Paste your storyboard below</div>
+              <textarea id="storyboard-text" placeholder="Paste your full storyboard here — prose, table format, scene descriptions, or any structured text. The more detail the better.&#10;&#10;Example:&#10;Module 1: Introduction to Data Privacy&#10;Slide 1: Title slide — welcome and overview&#10;Slide 2: What is data privacy? (content)&#10;Slide 3: Why it matters — scenario showing a data breach (branching)&#10;..."></textarea>
+            </div>
+          </div>
+          <div class="tab-panel" id="tab-guided">
+            <div class="field-row">
+              <div class="field-label">Course Title</div>
+              <input type="text" id="guided-title" placeholder="e.g. Data Privacy Fundamentals">
+            </div>
+            <div class="field-row">
+              <div class="field-label">Target Audience</div>
+              <input type="text" id="guided-audience" placeholder="e.g. All employees, Sales team, New managers">
+            </div>
+            <div class="field-row">
+              <div class="field-label">Learning Goal</div>
+              <input type="text" id="guided-goal" placeholder="e.g. Learners will be able to identify and report data privacy risks">
+            </div>
+            <div class="field-row">
+              <div class="field-label">Estimated Duration</div>
+              <select id="guided-duration">
+                <option>15 minutes</option><option>20 minutes</option>
+                <option selected>30 minutes</option><option>45 minutes</option>
+                <option>60 minutes</option><option>90 minutes</option>
+              </select>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Module/Scene Count (approximate)</div>
+              <select id="guided-modules">
+                <option>2 modules</option><option selected>3 modules</option>
+                <option>4 modules</option><option>5 modules</option><option>6+ modules</option>
+              </select>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Interaction Types (describe what you plan)</div>
+              <textarea id="guided-interactions" style="min-height:80px" placeholder="e.g. 3 MCQs, 1 branching scenario with 2 paths, 2 click-to-reveal interactions"></textarea>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Assessment Type</div>
+              <select id="guided-assessment">
+                <option>Formative only (no final test)</option>
+                <option selected>Scored quiz (pass/fail)</option>
+                <option>Scenario-based assessment</option>
+                <option>Knowledge check only</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:16px">
+          <div class="label">Learning Theory</div>
+          <div style="font-size:12px;color:var(--fg-muted);margin-bottom:12px">
+            Select a <strong>primary theory</strong> (click once) and optionally a <strong>secondary theory</strong> (click a second chip). The primary theory shapes slide mapping; the secondary adds a validation lens.
+          </div>
+          <div id="theory-picker-container"></div>
+          <div id="theory-selected-display" style="display:none"></div>
+        </div>
+
+        <div style="margin-top:16px;display:flex;gap:10px;align-items:center">
+          <button class="btn btn-primary" onclick="runStage1()" id="btn-analyze">
+            <span>Analyze Storyboard →</span>
+          </button>
+          <span id="s1-status" style="font-size:12px;color:var(--fg-muted)"></span>
+        </div>
+        <div id="s1-result" style="margin-top:16px"></div>
+      </div>
+
+      <!-- ═══ STAGE 2: MAPPER ═══ -->
+      <div class="stage-screen" id="stage-mapper">
+        <div class="stage-heading">Slide Plan</div>
+        <div class="stage-desc">Review and edit the mapped slide plan. Change interaction types, layer counts, and flags before the Variable Planner runs.</div>
+
+        <div id="mapper-theory-banner" style="margin-bottom:16px"></div>
+        <div id="mapper-alerts" style="margin-bottom:16px"></div>
+
+        <div class="card" style="position:relative">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+            <div>
+              <div class="label" style="margin-bottom:0">Slide Plan</div>
+              <div style="font-size:11px;color:var(--fg-muted);margin-top:2px" id="slide-plan-meta"></div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-ghost btn-sm" onclick="addSlideRow()">+ Add Slide</button>
+              <button class="btn btn-ghost btn-sm" onclick="exportSlidePlan()">↓ Export CSV</button>
+            </div>
+          </div>
+          <div class="slide-table-wrap">
+            <table class="slide-table" id="slide-table">
+              <thead>
+                <tr>
+                  <th>Slide ID</th>
+                  <th>Title</th>
+                  <th>Type</th>
+                  <th>Interaction</th>
+                  <th>Layers</th>
+                  <th>Media</th>
+                  <th style="text-align:center" title="Needs Variables">Var</th>
+                  <th style="text-align:center" title="Branch Node">Branch</th>
+                  <th>Theory Tag</th>
+                  <th>Notes</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="slide-tbody"></tbody>
+            </table>
+          </div>
+          <div id="slide-table-loading" class="loading-overlay" style="display:none">
+            <div class="spinner" style="width:28px;height:28px;border-width:3px;color:var(--accent)"></div>
+            <div class="loading-text" id="mapper-loading-text">Analyzing storyboard…</div>
+          </div>
+        </div>
+
+        <div id="theory-coverage-container"></div>
+        <div id="compliance-container"></div>
+
+        <div style="margin-top:20px;display:flex;gap:10px">
+          <button class="btn btn-primary" onclick="proceedToStage3()" id="btn-to-stage3">
+            Confirm Plan → Variable Planner
+          </button>
+          <button class="btn btn-ghost" onclick="goStage('ingest')">← Back</button>
+        </div>
+      </div>
+
+      <!-- ═══ STAGE 3: PLANNER ═══ -->
+      <div class="stage-screen" id="stage-planner">
+        <div class="stage-heading">Variable & Trigger Planner</div>
+        <div class="stage-desc">AI-generated variable register and trigger architecture — only for slides that need them. Review and edit before proceeding to validation.</div>
+
+        <div id="planner-theory-banner" style="margin-bottom:16px"></div>
+        <div id="planner-alerts" style="margin-bottom:16px"></div>
+
+        <!-- Variable Register -->
+        <div class="card" style="position:relative">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+            <div>
+              <div class="label" style="margin-bottom:0">Master Variable Register</div>
+              <div style="font-size:11px;color:var(--fg-muted);margin-top:2px" id="var-register-meta"></div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-ghost btn-sm" onclick="addVarRow()">+ Add Variable</button>
+              <button class="btn btn-ghost btn-sm" onclick="exportVarRegister()">↓ Export CSV</button>
+            </div>
+          </div>
+          <div class="slide-table-wrap">
+            <table class="slide-table" id="var-table">
+              <thead>
+                <tr>
+                  <th>Variable Name</th>
+                  <th>Type</th>
+                  <th>Default</th>
+                  <th>Scope</th>
+                  <th>Used In</th>
+                  <th>Purpose</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="var-tbody"></tbody>
+            </table>
+          </div>
+          <div id="var-table-loading" class="loading-overlay" style="display:none">
+            <div class="spinner" style="width:28px;height:28px;border-width:3px;color:var(--accent)"></div>
+            <div class="loading-text">Planning variables & triggers…</div>
+          </div>
+        </div>
+
+        <!-- Trigger Architectures per slide -->
+        <div class="card" style="margin-top:16px">
+          <div class="label" style="margin-bottom:12px">Slide Trigger Architectures</div>
+          <div id="trigger-accordion"></div>
+        </div>
+
+        <!-- Naming convention legend -->
+        <div class="card" style="margin-top:16px;background:var(--bg-subtle)">
+          <div class="label" style="margin-bottom:8px">Storyline Variable Naming Conventions</div>
+          <div style="display:flex;gap:24px;flex-wrap:wrap;font-size:12px;color:var(--fg-mid)">
+            <div><code style="font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--bg-panel);padding:2px 6px;border-radius:4px">nVarName</code> — Number</div>
+            <div><code style="font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--bg-panel);padding:2px 6px;border-radius:4px">bVarName</code> — True/False</div>
+            <div><code style="font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--bg-panel);padding:2px 6px;border-radius:4px">sVarName</code> — Text</div>
+            <div><code style="font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--bg-panel);padding:2px 6px;border-radius:4px">camelCase</code> — no spaces, type prefix required</div>
+          </div>
+        </div>
+
+        <div style="margin-top:20px;display:flex;gap:10px">
+          <button class="btn btn-primary" onclick="proceedToStage4()" id="btn-to-stage4">
+            Confirm Architecture → Branching Validator
+          </button>
+          <button class="btn btn-ghost" onclick="goStage('mapper')">← Back to Slide Plan</button>
+        </div>
+      </div>
+
+      <!-- ═══ STAGE 4: VALIDATOR ═══ -->
+      <div class="stage-screen" id="stage-validator">
+        <div class="stage-heading">Branching Logic Validator</div>
+        <div class="stage-desc">Validates every branching path in your course — dead ends, missing feedback slides, orphaned slides, and theory-specific structural rules.</div>
+
+        <div id="validator-alerts" style="margin-bottom:16px"></div>
+
+        <!-- Step 1: Confirm branch nodes -->
+        <div class="card" id="validator-step1-card">
+          <div class="label">Step 1 — Confirm Branch Nodes</div>
+          <div style="font-size:12px;color:var(--fg-muted);margin-bottom:12px">
+            These slides were flagged as branch nodes in your slide plan. Confirm the paths each node leads to before validation runs.
+          </div>
+          <div id="branch-node-list"></div>
+          <div style="margin-top:16px">
+            <button class="btn btn-primary" onclick="runStage4()" id="btn-validate">
+              Run Validation →
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 2: Results -->
+        <div id="validator-results" style="display:none;margin-top:16px">
+          <!-- Overall status banner -->
+          <div id="validation-status-banner"></div>
+
+          <!-- Issue list -->
+          <div class="card" style="margin-top:14px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+              <div class="label" style="margin-bottom:0">Validation Issues</div>
+              <div id="issue-counts" style="display:flex;gap:8px"></div>
+            </div>
+            <div id="issue-list"></div>
+          </div>
+
+          <!-- Validated paths -->
+          <div class="card" style="margin-top:14px">
+            <div class="label" style="margin-bottom:12px">Path Map</div>
+            <div id="path-map"></div>
+          </div>
+
+          <div style="margin-top:16px;display:flex;gap:10px">
+            <button class="btn btn-primary" onclick="proceedToStage5()" id="btn-to-stage5">
+              Proceed to Export →
+            </button>
+            <button class="btn btn-ghost" onclick="resetValidation()">Re-run Validation</button>
+            <button class="btn btn-ghost" onclick="goStage('planner')">← Back to Planner</button>
+          </div>
+        </div>
+
+        <div id="validator-loading" style="display:none;padding:40px;text-align:center">
+          <div class="spinner" style="width:28px;height:28px;border-width:3px;color:var(--accent);margin:0 auto 12px"></div>
+          <div style="font-size:13px;color:var(--fg-muted)">Validating branching logic…</div>
+        </div>
+      </div>
+
+      <!-- ═══ STAGE 5: EXPORT ═══ -->
+      <div class="stage-screen" id="stage-export">
+        <div class="stage-heading">Export Blueprint</div>
+        <div class="stage-desc">Your complete Storyline build blueprint — assembled from all four stages. Copy any section or download the full document.</div>
+
+        <div id="export-alerts" style="margin-bottom:16px"></div>
+
+        <!-- Export controls -->
+        <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center">
+          <button class="btn btn-primary" onclick="downloadBlueprint()" id="btn-download-blueprint">
+            ↓ Download Blueprint (.txt)
+          </button>
+          <button class="btn btn-secondary" onclick="copyBlueprint()">
+            ⎘ Copy All to Clipboard
+          </button>
+          <button class="btn btn-ghost" onclick="goStage('validator')">← Back to Validator</button>
+          <span id="export-copy-status" style="font-size:12px;color:var(--green)"></span>
+        </div>
+
+        <!-- Section tabs -->
+        <div class="tabs" id="export-tabs">
+          <button class="tab-btn active" onclick="switchExportTab(this,'exp-overview')">Overview</button>
+          <button class="tab-btn" onclick="switchExportTab(this,'exp-slidemap')">Slide Map</button>
+          <button class="tab-btn" onclick="switchExportTab(this,'exp-variables')">Variables</button>
+          <button class="tab-btn" onclick="switchExportTab(this,'exp-triggers')">Triggers</button>
+          <button class="tab-btn" onclick="switchExportTab(this,'exp-validation')">Validation</button>
+          <button class="tab-btn" onclick="switchExportTab(this,'exp-checklist')">Build Checklist</button>
+        </div>
+
+        <div class="tab-panel active" id="exp-overview">
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;margin-bottom:12px">
+              <div class="label" style="margin-bottom:0">Course Overview</div>
+              <button class="btn btn-ghost btn-sm" onclick="copySection('exp-overview-content')">⎘ Copy</button>
+            </div>
+            <div id="exp-overview-content" style="font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.8;white-space:pre-wrap;color:var(--fg-mid)"></div>
+          </div>
+        </div>
+
+        <div class="tab-panel" id="exp-slidemap">
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;margin-bottom:12px">
+              <div class="label" style="margin-bottom:0">Slide Map</div>
+              <button class="btn btn-ghost btn-sm" onclick="copySection('exp-slidemap-content')">⎘ Copy</button>
+            </div>
+            <div id="exp-slidemap-content" style="font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.9;white-space:pre-wrap;color:var(--fg-mid)"></div>
+          </div>
+        </div>
+
+        <div class="tab-panel" id="exp-variables">
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;margin-bottom:12px">
+              <div class="label" style="margin-bottom:0">Variable Register</div>
+              <button class="btn btn-ghost btn-sm" onclick="copySection('exp-variables-content')">⎘ Copy</button>
+            </div>
+            <div id="exp-variables-content" style="font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.9;white-space:pre-wrap;color:var(--fg-mid)"></div>
+          </div>
+        </div>
+
+        <div class="tab-panel" id="exp-triggers">
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;margin-bottom:12px">
+              <div class="label" style="margin-bottom:0">Trigger Architecture</div>
+              <button class="btn btn-ghost btn-sm" onclick="copySection('exp-triggers-content')">⎘ Copy</button>
+            </div>
+            <div id="exp-triggers-content" style="font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.9;white-space:pre-wrap;color:var(--fg-mid)"></div>
+          </div>
+        </div>
+
+        <div class="tab-panel" id="exp-validation">
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;margin-bottom:12px">
+              <div class="label" style="margin-bottom:0">Validation Report</div>
+              <button class="btn btn-ghost btn-sm" onclick="copySection('exp-validation-content')">⎘ Copy</button>
+            </div>
+            <div id="exp-validation-content" style="font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.9;white-space:pre-wrap;color:var(--fg-mid)"></div>
+          </div>
+        </div>
+
+        <div class="tab-panel" id="exp-checklist">
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;margin-bottom:12px">
+              <div class="label" style="margin-bottom:0">Build Checklist</div>
+              <button class="btn btn-ghost btn-sm" onclick="copySection('exp-checklist-content')">⎘ Copy</button>
+            </div>
+            <div id="exp-checklist-content" style="font-size:13px;line-height:1.9;color:var(--fg-mid)"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ SETTINGS ═══ -->
+      <div class="stage-screen" id="stage-settings">
+        <div class="stage-heading">Settings</div>
+        <div class="stage-desc">Configure your AI model and API key. Keys are stored in memory only — never sent to any server except the AI provider.</div>
+        <div class="card">
+          <div class="label">AI Model</div>
+          <div class="model-select-row" id="model-select-row">
+            <button class="model-btn selected" data-model="claude" onclick="selectModel(this)">
+              <div class="model-btn-name">Claude</div>
+              <div class="model-btn-id">claude-sonnet-4-5</div>
+            </button>
+            <button class="model-btn" data-model="openai" onclick="selectModel(this)">
+              <div class="model-btn-name">GPT-4o</div>
+              <div class="model-btn-id">gpt-4o</div>
+            </button>
+            <button class="model-btn" data-model="gemini" onclick="selectModel(this)">
+              <div class="model-btn-name">Gemini</div>
+              <div class="model-btn-id">gemini-2.0-flash</div>
+            </button>
+          </div>
+        </div>
+        <div class="card" style="margin-top:14px">
+          <div class="label">API Key</div>
+          <div class="api-row">
+            <input type="password" id="api-key-input" placeholder="Paste your API key here">
+            <button class="btn btn-secondary" onclick="toggleApiKey()">Show</button>
+            <button class="btn btn-primary" onclick="saveApiKey()">Save</button>
+          </div>
+          <div id="api-key-status" style="font-size:12px;color:var(--fg-muted);margin-top:8px"></div>
+        </div>
+        <div class="card" style="margin-top:14px">
+          <div class="label">About</div>
+          <p style="font-size:13px;color:var(--fg-mid);line-height:1.7">
+            <strong>Storyline Blueprint</strong> is a pre-authoring AI pipeline for Articulate Storyline 360 developers.
+            It analyzes your storyboard, maps it to a structured slide plan, generates variable/trigger architecture,
+            validates branching logic, and exports a full build blueprint document.
+          </p>
+          <p style="font-size:11px;color:var(--fg-muted);margin-top:8px">
+            Version 1.3 — All 5 stages complete.
+          </p>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════
+   THEORY LIBRARY — 60 theories, 8 categories, 3 tiers
+   tier1 = full pipeline integration (stage rules)
+   tier2 = Stage 2 tagging only
+   tier3 = system context only
+═══════════════════════════════════════════════════════════════════════ */
+const THEORIES = {
+
+  // ── 📐 INSTRUCTIONAL DESIGN MODELS ───────────────────────────────────
+  addie: {
+    name: "ADDIE Model", category: "id_models", tier: 2,
+    system_context: `This course uses the ADDIE model (Analysis, Design, Development, Implementation, Evaluation). Content should reflect a systematic, phase-based approach. Each scene should map to a logical design phase: analysis-informed objectives, design-driven structure, development-ready slide specs.`,
+    stage2_rules: `Tag each slide with the ADDIE phase it supports. Flag if storyboard skips from analysis directly to development without a clear design phase. Add 'addie_phase' field (Analysis/Design/Development/Evaluation) per slide.`,
+    stage3_rules: `Evaluation slides should include variables for tracking learner response data.`,
+    stage4_rules: null,
+    export_note: `Designed using the ADDIE instructional design model.`,
+    stage2_tags: ["Analysis","Design","Development","Evaluation"],
+    affected_stages: [2,3]
+  },
+  gagnes_nine_events: {
+    name: "Gagné's Nine Events", category: "id_models", tier: 1,
+    system_context: `This course is designed using Gagné's Nine Events of Instruction. The nine events are: (1) Gain attention, (2) Inform learner of objectives, (3) Stimulate recall of prior learning, (4) Present content/stimulus, (5) Provide learning guidance, (6) Elicit performance/practice, (7) Provide feedback, (8) Assess performance, (9) Enhance retention and transfer. Every scene or module should map to one or more of these events in sequence.`,
+    stage2_rules: `Tag each slide with the Gagné event(s) it covers (use event number and name). Flag any event that has no corresponding slide across the whole course. Add a 'gagne_event' field to each slide. Produce a secondary 'gagne_coverage' array showing which events are covered and which are missing.`,
+    stage3_rules: `Event 7 (feedback) slides must have explicit correct/incorrect trigger paths. Event 6 (practice) slides require attempt-tracking variables. Event 8 (assess) slides require a scored variable and pass/fail logic.`,
+    stage4_rules: `Branching scenarios must include an Event 7 (feedback) slide on all paths. Event 8 (assessment) cannot be the first slide in a branch path.`,
+    export_note: `Designed using Gagné's Nine Events of Instruction. Blueprint includes Gagné event coverage map.`,
+    stage2_tags: ["1-Attention","2-Objectives","3-Recall","4-Content","5-Guidance","6-Practice","7-Feedback","8-Assessment","9-Retention"],
+    affected_stages: [2,3,4],
+    coverage_events: [
+      "Gain Attention","Inform Objectives","Stimulate Recall",
+      "Present Content","Provide Guidance","Elicit Practice",
+      "Provide Feedback","Assess Performance","Enhance Retention"
+    ]
+  },
+  sam: {
+    name: "SAM (Successive Approximation)", category: "id_models", tier: 2,
+    system_context: `This course uses the SAM (Successive Approximation Model) approach — iterative, prototype-driven development. Storyboard structure should reflect agile design cycles: savvy start, iterative design, iterative development. Slides should be designed with the assumption of iteration and feedback loops.`,
+    stage2_rules: `Flag slides that appear to be first-draft prototypes versus refined content. Note where rapid prototyping iterations are implied in the storyboard.`,
+    stage3_rules: null,
+    stage4_rules: null,
+    export_note: `Designed using the SAM (Successive Approximation) iterative model.`,
+    stage2_tags: ["Savvy Start","Iterative Design","Iterative Dev"],
+    affected_stages: [2]
+  },
+  dick_carey: {
+    name: "Dick & Carey Model", category: "id_models", tier: 2,
+    system_context: `This course follows the Dick & Carey Systems Approach Model. Design should include: instructional goal analysis, learner and context analysis, performance objectives, assessment instruments, instructional strategy, and formative/summative evaluation.`,
+    stage2_rules: `Tag slides by Dick & Carey component. Flag if performance objectives and assessment instruments are misaligned.`,
+    stage3_rules: null,
+    stage4_rules: null,
+    export_note: `Designed using the Dick & Carey Systems Approach Model.`,
+    stage2_tags: ["Goal Analysis","Learner Analysis","Objectives","Assessment","Strategy","Evaluation"],
+    affected_stages: [2]
+  },
+  backwards_design: {
+    name: "Backwards Design", category: "id_models", tier: 2,
+    system_context: `This course uses Wiggins & McTighe's Backwards Design (Understanding by Design). Start with desired results (Stage 1), then acceptable evidence/assessment (Stage 2), then learning activities (Stage 3). Check that assessments appear before or at the same level of detail as content slides.`,
+    stage2_rules: `Flag if content slides appear before learning objectives are clearly stated. Check that assessment slides are designed around the stated objectives. Add 'ubd_stage' tag (Desired Results/Evidence/Activities) per slide.`,
+    stage3_rules: null,
+    stage4_rules: null,
+    export_note: `Designed using Backwards Design (Understanding by Design).`,
+    stage2_tags: ["Desired Results","Acceptable Evidence","Learning Activities"],
+    affected_stages: [2]
+  },
+  action_mapping: {
+    name: "Action Mapping", category: "id_models", tier: 1,
+    system_context: `This course uses Cathy Moore's Action Mapping methodology. Every interaction must be tied to a specific real-world action the learner needs to perform on the job. Information-only slides must be minimized. The focus is on practice activities, not content delivery. Each slide should ask: "What will the learner DO, not know?"`,
+    stage2_rules: `Tag each slide as 'Practice' (action-based) or 'Information' (content-only). Flag any scene where Information slides outnumber Practice slides by more than 2:1. Add an 'action_map_type' field. Flag slides that deliver information without connecting it to a performance goal.`,
+    stage3_rules: `Practice slides require performance-tracking variables. Information slides flagged as excessive should be noted for revision.`,
+    stage4_rules: `Branching scenarios must end with a consequence that connects to a real job outcome, not just a "correct/incorrect" label.`,
+    export_note: `Designed using Action Mapping (Cathy Moore). Blueprint includes practice vs. information slide ratio analysis.`,
+    stage2_tags: ["Practice","Information","Business Goal"],
+    affected_stages: [2,3,4]
+  },
+  four_c_id: {
+    name: "4C/ID Model", category: "id_models", tier: 2,
+    system_context: `This course uses van Merriënboer's 4C/ID model. Design must include four components: (1) Learning Tasks — whole-task practice in authentic settings, (2) Supportive Information — elaboration and mental models, (3) Procedural Information — just-in-time instructions, (4) Part-Task Practice — repetitive practice for specific sub-skills.`,
+    stage2_rules: `Tag each slide with the 4C/ID component it covers. Flag if Learning Tasks (whole-task practice) are absent. Add 'four_c_component' field.`,
+    stage3_rules: null,
+    stage4_rules: null,
+    export_note: `Designed using the 4C/ID (Four-Component Instructional Design) model.`,
+    stage2_tags: ["Learning Task","Supportive Info","Procedural Info","Part-Task Practice"],
+    affected_stages: [2]
+  },
+
+  // ── 📊 EVALUATION & FEEDBACK ─────────────────────────────────────────
+  kirkpatrick: {
+    name: "Kirkpatrick's Four Levels", category: "evaluation", tier: 2,
+    system_context: `This course uses Kirkpatrick's Four Levels of Training Evaluation. Design should address: Level 1 (Reaction — learner satisfaction), Level 2 (Learning — knowledge/skill acquisition), Level 3 (Behavior — transfer to work), Level 4 (Results — business impact). Include reaction-check slides and ensure Level 2 assessments are present.`,
+    stage2_rules: `Tag assessment and feedback slides by Kirkpatrick level. Flag if no Level 1 (reaction/satisfaction) check is present. Flag if Level 2 assessment is absent or insufficient for stated objectives.`,
+    stage3_rules: `Level 1 reaction slides should capture learner response data. Level 2 assessment slides require scoring variables.`,
+    stage4_rules: null,
+    export_note: `Designed with Kirkpatrick's Four Levels evaluation framework.`,
+    stage2_tags: ["L1-Reaction","L2-Learning","L3-Behavior","L4-Results"],
+    affected_stages: [2,3]
+  },
+  merrills_principles: {
+    name: "Merrill's First Principles", category: "evaluation", tier: 1,
+    system_context: `This course applies Merrill's First Principles of Instruction. The five principles are: (1) Problem-centered — learning is situated in real-world problems, (2) Activation — build on existing knowledge, (3) Demonstration — show rather than tell, (4) Application — learners practice with coaching, (5) Integration — learners reflect and transfer to real life. All five principles must be present across the course.`,
+    stage2_rules: `Tag each slide with the Merrill principle it addresses. Flag if any of the five principles are absent across the course. Add 'merrill_principle' field. Produce a 'merrill_coverage' summary showing which principles are present and which are missing.`,
+    stage3_rules: `Application slides require practice variables and feedback triggers. Demonstration slides flag if they have no corresponding Application slide in the same scene.`,
+    stage4_rules: `Branching scenarios must include an Integration moment — a reflection or real-world transfer prompt at the end.`,
+    export_note: `Designed using Merrill's First Principles of Instruction. Blueprint includes Merrill principle coverage map.`,
+    stage2_tags: ["Problem-Centered","Activation","Demonstration","Application","Integration"],
+    coverage_events: ["Problem-Centered","Activation","Demonstration","Application","Integration"],
+    affected_stages: [2,3,4]
+  },
+  cognitive_load: {
+    name: "Cognitive Load Theory", category: "evaluation", tier: 2,
+    system_context: `This course applies Cognitive Load Theory (Sweller). Design should minimize extraneous load, manage intrinsic load through sequencing, and maximize germane load through schema formation. Avoid split-attention effect (separating related information). Avoid redundancy effect (presenting the same info in audio and on-screen text simultaneously). Chunk complex content appropriately.`,
+    stage2_rules: `Flag slides with estimated high element interactivity (branching + variable + media simultaneously). Note where split-attention or redundancy effects may occur based on media flags and content descriptions.`,
+    stage3_rules: `Flag trigger architectures that create excessive simultaneous processing demands (many triggers firing at once).`,
+    stage4_rules: null,
+    export_note: `Designed with Cognitive Load Theory principles applied.`,
+    stage2_tags: ["High Load","Split-Attention Risk","Redundancy Risk","Well-Chunked"],
+    affected_stages: [2,3]
+  },
+  component_display: {
+    name: "Component Display Theory", category: "evaluation", tier: 2,
+    system_context: `This course uses Merrill's Component Display Theory (CDT). Classify content by: type (fact, concept, procedure, principle) and performance level (remember, use, find/discover). Match instruction strategy to the content-performance cell.`,
+    stage2_rules: `Tag each slide with content type (fact/concept/procedure/principle) and performance level (remember/use/find). Flag mismatches where performance level exceeds what the instructional strategy supports.`,
+    stage3_rules: null,
+    stage4_rules: null,
+    export_note: `Designed using Component Display Theory content-performance classification.`,
+    stage2_tags: ["Fact","Concept","Procedure","Principle","Remember","Use","Find"],
+    affected_stages: [2]
+  },
+  heuristic_eval: {
+    name: "Heuristic Evaluation", category: "evaluation", tier: 3,
+    system_context: `This course applies usability heuristic evaluation principles to instructional design. Consider: consistency and standards, error prevention, recognition over recall, flexibility and efficiency, aesthetic and minimalist design, and help users recognize and recover from errors.`,
+    stage2_rules: null, stage3_rules: null, stage4_rules: null,
+    export_note: `Heuristic evaluation principles applied to instructional design.`,
+    stage2_tags: [], affected_stages: []
+  },
+
+  // ── 🔥 MOTIVATION & ENGAGEMENT ───────────────────────────────────────
+  arcs: {
+    name: "ARCS Model (Keller)", category: "motivation", tier: 1,
+    system_context: `This course uses Keller's ARCS Model of Motivational Design. ARCS stands for: Attention (capture and sustain interest), Relevance (connect to learner needs and goals), Confidence (build a sense of success), Satisfaction (reinforce achievement and value). All four ARCS components must be present across the course.`,
+    stage2_rules: `Tag each slide with the ARCS component it addresses. Flag if any ARCS component is absent across the entire course. Add an 'arcs_component' field. Produce an 'arcs_coverage' summary.`,
+    stage3_rules: `Confidence-building slides should have try-again variables that allow multiple attempts. Satisfaction slides should include completion/success feedback triggers.`,
+    stage4_rules: `Branching scenarios require a Satisfaction moment on the correct path.`,
+    export_note: `Designed using Keller's ARCS Motivational Design Model. Blueprint includes ARCS component coverage.`,
+    stage2_tags: ["Attention","Relevance","Confidence","Satisfaction"],
+    coverage_events: ["Attention","Relevance","Confidence","Satisfaction"],
+    affected_stages: [2,3,4]
+  },
+  flow_theory: {
+    name: "Flow Theory", category: "motivation", tier: 2,
+    system_context: `This course applies Csikszentmihalyi's Flow Theory. Design should create an optimal challenge-skill balance — not too easy (boredom) and not too difficult (anxiety). Interactions should escalate in complexity and provide clear goals, immediate feedback, and a sense of control.`,
+    stage2_rules: `Flag if all interactions appear to be the same complexity level (no progression). Note where feedback mechanisms are absent for practice slides.`,
+    stage3_rules: null,
+    stage4_rules: null,
+    export_note: `Designed with Flow Theory challenge-skill progression principles.`,
+    stage2_tags: ["Easy","Moderate","Challenging","Flow Zone"],
+    affected_stages: [2]
+  },
+  self_determination: {
+    name: "Self-Determination Theory", category: "motivation", tier: 2,
+    system_context: `This course applies Self-Determination Theory (Deci & Ryan). Support the three basic psychological needs: Autonomy (learner choice and control), Competence (success and mastery), Relatedness (social connection and relevance). Include choice points, competence-building feedback, and contextually relevant scenarios.`,
+    stage2_rules: `Flag if no learner choice points (autonomy) exist in the course. Flag if competence feedback is absent after practice slides.`,
+    stage3_rules: null,
+    stage4_rules: null,
+    export_note: `Designed with Self-Determination Theory psychological needs in mind.`,
+    stage2_tags: ["Autonomy","Competence","Relatedness"],
+    affected_stages: [2]
+  },
+  self_regulated_learning: {
+    name: "Self-Regulated Learning", category: "motivation", tier: 3,
+    system_context: `This course supports Self-Regulated Learning (Zimmerman). Include elements that help learners set goals, monitor progress, and self-assess. Provide metacognitive prompts and reflection moments.`,
+    stage2_rules: null, stage3_rules: null, stage4_rules: null,
+    export_note: `Self-Regulated Learning metacognitive principles applied.`,
+    stage2_tags: [], affected_stages: []
+  },
+  ages_model: {
+    name: "AGES Model", category: "motivation", tier: 3,
+    system_context: `This course applies the AGES Model (Attention, Generation, Emotion, Spacing) from the NeuroLeadership Institute. Design should capture and sustain attention, require active generation/retrieval of knowledge, connect to emotional relevance, and space practice over time.`,
+    stage2_rules: null, stage3_rules: null, stage4_rules: null,
+    export_note: `AGES Model (Attention, Generation, Emotion, Spacing) principles applied.`,
+    stage2_tags: [], affected_stages: []
+  },
+  expectancy_theory: {
+    name: "Expectancy Theory", category: "motivation", tier: 3,
+    system_context: `This course applies Vroom's Expectancy Theory of motivation. Learners are motivated when: they believe they can succeed (expectancy), success leads to a valued outcome (instrumentality), and the outcome is desirable (valence). Frame course value proposition clearly.`,
+    stage2_rules: null, stage3_rules: null, stage4_rules: null,
+    export_note: `Vroom's Expectancy Theory motivational framing applied.`,
+    stage2_tags: [], affected_stages: []
+  },
+
+  // ── 🤝 CONSTRUCTIVIST & SOCIAL ────────────────────────────────────────
+  situated_learning: {
+    name: "Situated Learning", category: "constructivist", tier: 2,
+    system_context: `This course uses Situated Learning theory (Lave & Wenger). Learning should be embedded in authentic, realistic activity and contexts. Practice should mirror real-world conditions as closely as possible. Avoid decontextualized instruction.`,
+    stage2_rules: `Flag slides that present information out of any real-world context. Note where scenarios authentically mirror job/life situations.`,
+    stage3_rules: null,
+    stage4_rules: null,
+    export_note: `Designed using Situated Learning — authentic, contextualized instruction.`,
+    stage2_tags: ["Authentic Context","Decontextualized Risk"],
+    affected_stages: [2]
+  },
+  vygotsky_zpd: {
+    name: "Vygotsky / ZPD", category: "constructivist", tier: 2,
+    system_context: `This course applies Vygotsky's Zone of Proximal Development (ZPD) and scaffolded instruction. Design should include scaffolding (hints, guided practice, support structures) that is gradually removed as learner competence increases. Interactions should sit just above the learner's current ability level.`,
+    stage2_rules: `Flag if scaffolding elements (hints, guided examples) are absent from practice slides. Note where scaffolding is present but never faded.`,
+    stage3_rules: null,
+    stage4_rules: null,
+    export_note: `Designed with Vygotsky's ZPD and scaffolded instruction principles.`,
+    stage2_tags: ["Scaffolded","Faded Support","Independent Practice"],
+    affected_stages: [2]
+  },
+  connectivism: {
+    name: "Connectivism", category: "constructivist", tier: 3,
+    system_context: `This course applies Connectivism (Siemens). Learning is a process of connecting nodes of specialized information. Design should acknowledge external networks, encourage learners to find and evaluate information, and reflect that knowledge resides in networks, not just individuals.`,
+    stage2_rules: null, stage3_rules: null, stage4_rules: null,
+    export_note: `Connectivist design principles applied.`,
+    stage2_tags: [], affected_stages: []
+  },
+  collaborative_learning: {
+    name: "Collaborative Learning", category: "constructivist", tier: 3,
+    system_context: `This course incorporates Collaborative Learning principles. While delivered as self-paced eLearning, design should include social learning elements: discussion prompts, peer reflection activities, or scenarios that frame decisions as group problems.`,
+    stage2_rules: null, stage3_rules: null, stage4_rules: null,
+    export_note: `Collaborative Learning social elements incorporated.`,
+    stage2_tags: [], affected_stages: []
+  },
+  cognitive_apprenticeship: {
+    name: "Cognitive Apprenticeship", category: "constructivist", tier: 2,
+    system_context: `This course uses Cognitive Apprenticeship (Collins, Brown, Newman). Include: Modeling (expert demonstrates), Coaching (guided practice with feedback), Scaffolding (support structures), Articulation (learner explains reasoning), Reflection (compare to expert), Exploration (independent problem-solving).`,
+    stage2_rules: `Tag slides by Cognitive Apprenticeship phase. Flag if Modeling is absent before Practice slides.`,
+    stage3_rules: null,
+    stage4_rules: null,
+    export_note: `Designed using Cognitive Apprenticeship phases.`,
+    stage2_tags: ["Modeling","Coaching","Scaffolding","Articulation","Reflection","Exploration"],
+    affected_stages: [2]
+  },
+  community_of_inquiry: {
+    name: "Community of Inquiry", category: "constructivist", tier: 3,
+    system_context: `This course applies the Community of Inquiry framework (Garrison, Anderson, Archer). Three presences: Social Presence (learner engagement and trust), Cognitive Presence (inquiry and knowledge construction), Teaching Presence (design, facilitation, direct instruction).`,
+    stage2_rules: null, stage3_rules: null, stage4_rules: null,
+    export_note: `Community of Inquiry framework applied.`,
+    stage2_tags: [], affected_stages: []
+  },
+
+  // ── 🧪 EXPERIENTIAL & PROBLEM-BASED ──────────────────────────────────
+  problem_based: {
+    name: "Problem-Based Learning", category: "experiential", tier: 1,
+    system_context: `This course uses Problem-Based Learning (PBL). The course must open with an authentic, ill-structured problem that drives the learning. Learners discover and apply knowledge through working toward the problem's solution. Content slides should serve the problem, not precede it.`,
+    stage2_rules: `Flag if the storyboard does not open with a problem anchor slide. Flag scenes where content is delivered before the problem is established. Produce a 'pbl_structure' check: problem anchor present? inquiry slides? solution construction? reflection?`,
+    stage3_rules: null,
+    stage4_rules: `All branching scenario paths must include consequence slides that connect back to the original problem. Paths without consequence slides are BLOCK-level issues.`,
+    export_note: `Designed using Problem-Based Learning — problem-first, inquiry-driven structure.`,
+    stage2_tags: ["Problem Anchor","Inquiry","Knowledge App","Reflection"],
+    affected_stages: [2,4]
+  },
+  kolb_experiential: {
+    name: "Experiential Learning (Kolb)", category: "experiential", tier: 1,
+    system_context: `This course uses Kolb's Experiential Learning Theory. The learning cycle has four stages: Concrete Experience (doing/having an experience), Reflective Observation (reviewing/reflecting), Abstract Conceptualization (concluding/learning), Active Experimentation (planning/trying out). Scenarios should complete the full cycle.`,
+    stage2_rules: `Tag each slide with the Kolb stage it covers. Flag if the cycle is broken (e.g. Active Experimentation appears before Reflective Observation). Produce a 'kolb_cycle_check' per scene showing cycle completion. Add 'kolb_stage' field.`,
+    stage3_rules: null,
+    stage4_rules: `Branching scenarios must include a Reflective Observation slide on all paths before returning to the main flow.`,
+    export_note: `Designed using Kolb's Experiential Learning cycle. Blueprint includes per-scene cycle completion check.`,
+    stage2_tags: ["Concrete Experience","Reflective Observation","Abstract Conceptualization","Active Experimentation"],
+    coverage_events: ["Concrete Experience","Reflective Observation","Abstract Conceptualization","Active Experimentation"],
+    affected_stages: [2,4]
+  },
+  project_based: {
+    name: "Project-Based Learning", category: "experiential", tier: 2,
+    system_context: `This course uses Project-Based Learning (PjBL). Learners work through a sustained, authentic project or challenge. Design must include: a driving question, sustained inquiry activities, authenticity, learner voice and choice, reflection, critique and revision, and a public product or outcome.`,
+    stage2_rules: `Flag if no driving question slide is present. Flag if no reflection or revision slides exist.`,
+    stage3_rules: null,
+    stage4_rules: null,
+    export_note: `Designed using Project-Based Learning methodology.`,
+    stage2_tags: ["Driving Question","Inquiry","Reflection","Product"],
+    affected_stages: [2]
+  },
+  inquiry_based: {
+    name: "Inquiry-Based Learning", category: "experiential", tier: 2,
+    system_context: `This course uses Inquiry-Based Learning. Learners investigate questions, problems, or scenarios rather than receiving information directly. Design should progress through: questioning, investigation, evidence-gathering, explanation, and communication.`,
+    stage2_rules: `Flag if content slides deliver answers before learners have engaged in inquiry activities.`,
+    stage3_rules: null,
+    stage4_rules: null,
+    export_note: `Designed using Inquiry-Based Learning — question-driven, evidence-gathering structure.`,
+    stage2_tags: ["Question","Investigation","Evidence","Explanation"],
+    affected_stages: [2]
+  },
+  goal_based_scenarios: {
+    name: "Goal-Based Scenarios", category: "experiential", tier: 1,
+    system_context: `This course uses Roger Schank's Goal-Based Scenario (GBS) framework. Every scenario must have: an explicit mission/goal, a cover story (narrative context), a role for the learner, an operational scenario (the challenge), resources available, and feedback (consequence of actions).`,
+    stage2_rules: `Flag if any scenario slide sequence lacks an explicit goal/mission slide. Flag scenarios that jump to choices without establishing the cover story. Add a 'gbs_component' tag per scenario slide.`,
+    stage3_rules: null,
+    stage4_rules: `All scenario paths must end with a debriefing slide that connects the outcome to the learning goal. Missing debrief slides are BLOCK-level issues.`,
+    export_note: `Designed using Goal-Based Scenarios (Schank). Blueprint validates mission, cover story, and debrief presence.`,
+    stage2_tags: ["Mission","Cover Story","Role","Scenario","Resources","Debrief"],
+    affected_stages: [2,4]
+  },
+
+  // ── 🧠 DEVELOPMENTAL & COGNITIVE ─────────────────────────────────────
+  blooms_taxonomy: {
+    name: "Bloom's Taxonomy", category: "cognitive", tier: 1,
+    system_context: `This course applies Bloom's Revised Taxonomy. The six cognitive levels are: Remember, Understand, Apply, Analyze, Evaluate, Create. Learning objectives and interactions should be mapped to appropriate Bloom's levels, with a clear progression from lower-order to higher-order thinking skills.`,
+    stage2_rules: `Tag each slide with the Bloom's level(s) it targets. Flag if the course has significant regression (higher-order slides followed by lower-order slides without clear instructional reason). Flag if all slides are at the same Bloom's level (no progression). Add a 'blooms_level' field. Produce a 'blooms_distribution' summary.`,
+    stage3_rules: `Analyze/Evaluate/Create-level slides require more complex interaction types (branching, freeform, scenario) — flag if they use only MCQ.`,
+    stage4_rules: null,
+    export_note: `Designed with Bloom's Revised Taxonomy. Blueprint includes Bloom's level distribution across slides.`,
+    stage2_tags: ["Remember","Understand","Apply","Analyze","Evaluate","Create"],
+    affected_stages: [2,3]
+  },
+  spiral_curriculum: {
+    name: "Spiral Curriculum", category: "cognitive", tier: 2,
+    system_context: `This course uses Bruner's Spiral Curriculum approach. Core concepts should recur across scenes at increasing depth and complexity. Learners revisit the same ideas with more sophisticated treatment each time.`,
+    stage2_rules: `Flag core concepts that appear only once across the course. Note where concepts recur and assess whether complexity increases on each recurrence.`,
+    stage3_rules: null,
+    stage4_rules: null,
+    export_note: `Designed using Spiral Curriculum — recurring concepts at increasing depth.`,
+    stage2_tags: ["First Encounter","Revisit-Deeper","Revisit-Advanced"],
+    affected_stages: [2]
+  },
+  elaboration_theory: {
+    name: "Elaboration Theory", category: "cognitive", tier: 2,
+    system_context: `This course uses Reigeluth's Elaboration Theory. Begin with an epitome (a simple overview of the whole domain), then progressively elaborate with detail. The first scene should give learners a simplified map of the whole, which is then expanded in subsequent scenes.`,
+    stage2_rules: `Flag if no epitome (overview) slide exists at the start of the course. Flag if detail slides appear before the epitome. Tag the epitome slide explicitly.`,
+    stage3_rules: null,
+    stage4_rules: null,
+    export_note: `Designed using Elaboration Theory — epitome-first, progressive detail structure.`,
+    stage2_tags: ["Epitome","Elaboration-1","Elaboration-2","Summary"],
+    affected_stages: [2]
+  },
+  transformational_learning: {
+    name: "Transformational Learning", category: "cognitive", tier: 3,
+    system_context: `This course applies Mezirow's Transformational Learning Theory. Design should include disorienting dilemmas (challenging assumptions), critical reflection, discourse (examining perspectives), and acting on new understanding. Include perspective-challenging scenarios.`,
+    stage2_rules: null, stage3_rules: null, stage4_rules: null,
+    export_note: `Transformational Learning reflection and perspective-challenging elements applied.`,
+    stage2_tags: [], affected_stages: []
+  },
+  multiple_intelligences: {
+    name: "Multiple Intelligences", category: "cognitive", tier: 3,
+    system_context: `This course considers Gardner's Multiple Intelligences theory. Where appropriate, include variety in how information is presented and practiced: linguistic, logical-mathematical, visual-spatial, musical, bodily-kinesthetic, interpersonal, intrapersonal, naturalistic.`,
+    stage2_rules: null, stage3_rules: null, stage4_rules: null,
+    export_note: `Multiple Intelligences variety principles considered in design.`,
+    stage2_tags: [], affected_stages: []
+  },
+
+  // ── 💻 TECHNOLOGY & MULTIMEDIA ────────────────────────────────────────
+  multimedia_learning: {
+    name: "Multimedia Learning (Mayer)", category: "multimedia", tier: 2,
+    system_context: `This course applies Mayer's Cognitive Theory of Multimedia Learning. Key principles: Coherence (remove extraneous material), Signaling (highlight key information), Redundancy (avoid on-screen text that duplicates narration), Spatial Contiguity (related text and images close together), Temporal Contiguity (animation and narration simultaneous), Segmenting (learner-paced), Pre-Training (key concepts first), Modality (audio+visuals over text+visuals), Multimedia (words+pictures better than words alone), Personalization (conversational style), Voice (human voice), Image (no on-screen speaker needed).`,
+    stage2_rules: `Flag slides with AUDIO + on-screen text that duplicates the audio (redundancy effect risk). Flag slides with excessive on-screen text. Note where spatial contiguity issues may exist (labels far from related images).`,
+    stage3_rules: null,
+    stage4_rules: null,
+    export_note: `Designed with Mayer's Multimedia Learning principles applied.`,
+    stage2_tags: ["Redundancy Risk","High Text Load","Spatial Issue","Well-Applied"],
+    affected_stages: [2]
+  },
+  digital_game_based: {
+    name: "Digital Game-Based Learning", category: "multimedia", tier: 3,
+    system_context: `This course incorporates Digital Game-Based Learning (DGBL) elements. Design should include game-like mechanics: points, levels, challenges, immediate feedback, narrative progression, and intrinsic motivation. Interactions should feel game-like while remaining instructionally sound.`,
+    stage2_rules: null, stage3_rules: null, stage4_rules: null,
+    export_note: `Digital Game-Based Learning elements incorporated.`,
+    stage2_tags: [], affected_stages: []
+  },
+  digital_storytelling: {
+    name: "Digital Storytelling", category: "multimedia", tier: 2,
+    system_context: `This course uses Digital Storytelling as an instructional approach. Design should include a clear narrative arc: setup (context and characters), conflict or challenge, rising action (learning journey), climax (key decision or test), and resolution (consequence and reflection).`,
+    stage2_rules: `Flag if no narrative arc is evident across the storyboard. Tag scenes by story arc phase.`,
+    stage3_rules: null,
+    stage4_rules: null,
+    export_note: `Designed using Digital Storytelling narrative arc principles.`,
+    stage2_tags: ["Setup","Conflict","Rising Action","Climax","Resolution"],
+    affected_stages: [2]
+  },
+  multiple_representations: {
+    name: "Multiple Representations", category: "multimedia", tier: 3,
+    system_context: `This course uses Multiple Representations theory — presenting the same concept through different modes (text, diagram, example, analogy) to build flexible, transferable understanding. Design should include at least two different representational formats for key concepts.`,
+    stage2_rules: null, stage3_rules: null, stage4_rules: null,
+    export_note: `Multiple Representations variety applied for key concepts.`,
+    stage2_tags: [], affected_stages: []
+  },
+
+  // ── 👩‍🏫 ADULT LEARNING ──────────────────────────────────────────────
+  andragogy: {
+    name: "Andragogy (Knowles)", category: "adult", tier: 1,
+    system_context: `This course applies Knowles' Andragogy principles for adult learners. The six andragogical principles are: (1) Self-concept — adults are self-directed, (2) Experience — adults bring rich prior experience, (3) Readiness — adults learn what they need now, (4) Orientation — problem-centered rather than subject-centered, (5) Motivation — internal/intrinsic motivation, (6) Need to know — adults need to know why they are learning something. Each scene must connect content to real-world relevance.`,
+    stage2_rules: `Flag if any scene lacks a "why this matters" relevance anchor slide. Flag if all slides are purely directive without any self-direction element. Tag slides by the andragogical principle they support. Add an 'andragogy_principle' field.`,
+    stage3_rules: null,
+    stage4_rules: null,
+    export_note: `Designed using Knowles' Andragogy principles. Blueprint includes relevance anchor and self-direction coverage check.`,
+    stage2_tags: ["Self-Directed","Experience","Relevance Anchor","Problem-Centered","Intrinsic","Need-to-Know"],
+    affected_stages: [2]
+  },
+  seventy_twenty_ten: {
+    name: "70-20-10 Model", category: "adult", tier: 2,
+    system_context: `This course applies the 70-20-10 learning model (Lombardo & Eichinger). 70% of learning comes from challenging on-the-job experiences, 20% from social/collaborative interactions, 10% from formal instruction. eLearning covers the 10% formal learning component but should reference and connect to the 70% and 20% experiences.`,
+    stage2_rules: `Classify each slide as 70 (practice/application simulating on-job), 20 (social/scenario-based), or 10 (formal instruction/content). Flag if 10 (formal content) slides make up more than 40% of the total course.`,
+    stage3_rules: null,
+    stage4_rules: null,
+    export_note: `Designed with 70-20-10 model — formal instruction balanced with application and social learning.`,
+    stage2_tags: ["70-Application","20-Social","10-Formal"],
+    affected_stages: [2]
+  },
+  heutagogy: {
+    name: "Heutagogy", category: "adult", tier: 3,
+    system_context: `This course incorporates Heutagogy (self-determined learning, Hase & Kenyon). Learners direct their own learning journey, set their own goals, and determine how and what to learn. Design should include learner choice, open-ended exploration, and metacognitive reflection.`,
+    stage2_rules: null, stage3_rules: null, stage4_rules: null,
+    export_note: `Heutagogy self-determined learning principles applied.`,
+    stage2_tags: [], affected_stages: []
+  },
+  microlearning: {
+    name: "Microlearning Principles", category: "adult", tier: 2,
+    system_context: `This course applies microlearning principles. Each learning unit should be short (3–5 minutes), focused on a single learning objective, immediately applicable, and accessible on-demand. Avoid cognitive overload. Each scene should function as a standalone learning bite.`,
+    stage2_rules: `Flag scenes estimated to exceed 5 minutes of content. Flag slides that try to cover multiple learning objectives. Note where scenes cannot function standalone (require prior scenes to make sense).`,
+    stage3_rules: null,
+    stage4_rules: null,
+    export_note: `Designed with microlearning principles — short, focused, standalone units.`,
+    stage2_tags: ["Micro-Unit","Overlong Risk","Standalone","Multi-Objective Risk"],
+    affected_stages: [2]
+  }
+};
+
+/* Category metadata */
+const CATEGORIES = {
+  id_models:      { label: "Instructional Design Models", icon: "📐" },
+  evaluation:     { label: "Evaluation & Feedback",        icon: "📊" },
+  motivation:     { label: "Motivation & Engagement",      icon: "🔥" },
+  constructivist: { label: "Constructivist & Social",      icon: "🤝" },
+  experiential:   { label: "Experiential & Problem-Based", icon: "🧪" },
+  cognitive:      { label: "Developmental & Cognitive",    icon: "🧠" },
+  multimedia:     { label: "Technology & Multimedia",      icon: "💻" },
+  adult:          { label: "Adult Learning",               icon: "👩‍🏫" }
+};
+
+/* ═══════════════════════════════════════════════════════════════════════
+   APP STATE
+═══════════════════════════════════════════════════════════════════════ */
+const state = {
+  apiKey: '',
+  model: 'claude',
+  currentStage: 'ingest',
+  primaryTheory: null,
+  secondaryTheory: null,
+  storyboardText: '',
+  stage1Result: null,
+  slidePlan: null,
+  theoryCoverage: null,
+  stage3Result: null,
+  stage4Result: null,
+  branchNodes: [],
+  branchPaths: null,
+  branchPathLabels: null,
+  unlockedStages: new Set(['ingest','settings'])
+};
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SETTINGS
+═══════════════════════════════════════════════════════════════════════ */
+function selectModel(btn) {
+  document.querySelectorAll('.model-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  state.model = btn.dataset.model;
+}
+function toggleApiKey() {
+  const inp = document.getElementById('api-key-input');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+function saveApiKey() {
+  state.apiKey = document.getElementById('api-key-input').value.trim();
+  document.getElementById('api-key-status').textContent = state.apiKey
+    ? '✓ API key saved for this session'
+    : 'No API key set';
+  try { localStorage.setItem('sb_model', state.model); } catch(e){}
+}
+(function initSettings() {
+  try {
+    const m = localStorage.getItem('sb_model');
+    if (m) {
+      state.model = m;
+      document.querySelectorAll('.model-btn').forEach(b => {
+        if (b.dataset.model === m) b.classList.add('selected');
+        else b.classList.remove('selected');
+      });
+    }
+  } catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════════════════════════════════ */
+const STAGE_TITLES = {
+  ingest:    'Stage 1 — Ingest Storyboard',
+  mapper:    'Stage 2 — Slide Plan Mapper',
+  planner:   'Stage 3 — Variable & Trigger Planner',
+  validator: 'Stage 4 — Branching Logic Validator',
+  export:    'Stage 5 — Export Blueprint',
+  settings:  'Settings'
+};
+function goStage(id) {
+  if (!state.unlockedStages.has(id)) return;
+  state.currentStage = id;
+  document.querySelectorAll('.stage-screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('stage-' + id)?.classList.add('active');
+  document.querySelectorAll('.stage-item[data-stage]').forEach(item => {
+    item.classList.remove('active');
+    if (item.dataset.stage === id) item.classList.add('active');
+  });
+  document.getElementById('topbar-title').textContent = STAGE_TITLES[id] || '';
+}
+function unlockStage(id) {
+  state.unlockedStages.add(id);
+  const item = document.querySelector(`.stage-item[data-stage="${id}"]`);
+  if (item) item.classList.remove('locked');
+}
+function markStageDone(id) {
+  const item = document.querySelector(`.stage-item[data-stage="${id}"]`);
+  if (item) {
+    item.classList.add('done');
+    item.querySelector('.stage-num').textContent = '';
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TABS
+═══════════════════════════════════════════════════════════════════════ */
+function switchTab(btn, panelId) {
+  const parent = btn.closest('.tabs').parentElement;
+  parent.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  parent.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  parent.getElementById
+    ? parent.getElementById(panelId)?.classList.add('active')
+    : document.getElementById(panelId)?.classList.add('active');
+  document.getElementById(panelId)?.classList.add('active');
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   THEORY PICKER RENDER
+═══════════════════════════════════════════════════════════════════════ */
+function renderTheoryPicker() {
+  const container = document.getElementById('theory-picker-container');
+  const byCategory = {};
+  for (const [key, t] of Object.entries(THEORIES)) {
+    if (!byCategory[t.category]) byCategory[t.category] = [];
+    byCategory[t.category].push({ key, ...t });
+  }
+  let html = '<div class="theory-picker">';
+  for (const [catKey, catMeta] of Object.entries(CATEGORIES)) {
+    const theories = byCategory[catKey] || [];
+    html += `<div class="theory-category">
+      <div class="theory-category-label">${catMeta.icon} ${catMeta.label}</div>
+      <div class="theory-chips">`;
+    for (const t of theories) {
+      const tierClass = t.tier === 2 ? 'tier2' : t.tier === 3 ? 'tier3' : '';
+      html += `<div class="theory-chip ${tierClass}" data-key="${t.key}" onclick="selectTheory('${t.key}')" title="${t.tier === 1 ? 'Full pipeline integration' : t.tier === 2 ? 'Stage 2 tagging + partial validation' : 'System context only'}">${t.name}</div>`;
+    }
+    html += '</div></div>';
+  }
+  html += '</div>';
+  html += `<div class="theory-legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div>Tier 1 — Full integration (all stages)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--gold)"></div>Tier 2 — Stage 2 tagging</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--border-mid)"></div>Tier 3 — Context only</div>
+  </div>`;
+  container.innerHTML = html;
+}
+
+function selectTheory(key) {
+  if (!state.primaryTheory) {
+    state.primaryTheory = key;
+    document.querySelector(`.theory-chip[data-key="${key}"]`)?.classList.add('selected-primary');
+  } else if (state.primaryTheory === key) {
+    state.primaryTheory = null;
+    document.querySelector(`.theory-chip[data-key="${key}"]`)?.classList.remove('selected-primary');
+    if (state.secondaryTheory) {
+      document.querySelector(`.theory-chip[data-key="${state.secondaryTheory}"]`)?.classList.remove('selected-secondary');
+      state.secondaryTheory = null;
+    }
+  } else if (!state.secondaryTheory) {
+    state.secondaryTheory = key;
+    document.querySelector(`.theory-chip[data-key="${key}"]`)?.classList.add('selected-secondary');
+  } else if (state.secondaryTheory === key) {
+    state.secondaryTheory = null;
+    document.querySelector(`.theory-chip[data-key="${key}"]`)?.classList.remove('selected-secondary');
+  } else {
+    document.querySelector(`.theory-chip[data-key="${state.secondaryTheory}"]`)?.classList.remove('selected-secondary');
+    state.secondaryTheory = key;
+    document.querySelector(`.theory-chip[data-key="${key}"]`)?.classList.add('selected-secondary');
+  }
+  renderSelectedTheoryCard();
+}
+
+function renderSelectedTheoryCard() {
+  const display = document.getElementById('theory-selected-display');
+  if (!state.primaryTheory) { display.style.display = 'none'; return; }
+  const pt = THEORIES[state.primaryTheory];
+  const st = state.secondaryTheory ? THEORIES[state.secondaryTheory] : null;
+  const stageLabels = { 2:'Mapper', 3:'Planner', 4:'Validator' };
+  let tags = '';
+  for (const s of (pt.affected_stages || [])) {
+    tags += `<span class="badge badge-blue" style="font-size:10px">Stage ${s}: ${stageLabels[s]}</span> `;
+  }
+  if (st) {
+    for (const s of (st.affected_stages || [])) {
+      if (!pt.affected_stages?.includes(s))
+        tags += `<span class="badge badge-gold" style="font-size:10px">+Stage ${s}: ${stageLabels[s]}</span> `;
+    }
+  }
+  display.innerHTML = `
+    <div class="theory-selected-card">
+      <h4>Primary: ${pt.name}${st ? ` &nbsp;+&nbsp; Secondary: ${st.name}` : ''}</h4>
+      <p>${pt.system_context.split('.')[0]}.</p>
+      ${pt.tier === 1 ? `<p style="margin-top:4px;color:var(--green);font-size:11px;font-weight:600">✓ Full pipeline integration — all 4 stages</p>` : pt.tier === 2 ? `<p style="margin-top:4px;font-size:11px">Stage 2 tagging and partial validation.</p>` : `<p style="margin-top:4px;font-size:11px">Context shapes AI tone across all stages.</p>`}
+      <div class="theory-stage-tags" style="margin-top:8px">${tags}</div>
+    </div>`;
+  display.style.display = 'block';
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   STAGE 1 — ANALYSIS PROMPT & API CALL
+═══════════════════════════════════════════════════════════════════════ */
+function getStoryboardInput() {
+  const activeTab = document.querySelector('#tab-paste.active');
+  if (activeTab) {
+    return document.getElementById('storyboard-text').value.trim();
+  }
+  // Guided entry — assemble into structured text
+  const title    = document.getElementById('guided-title').value.trim();
+  const audience = document.getElementById('guided-audience').value.trim();
+  const goal     = document.getElementById('guided-goal').value.trim();
+  const duration = document.getElementById('guided-duration').value;
+  const modules  = document.getElementById('guided-modules').value;
+  const ixns     = document.getElementById('guided-interactions').value.trim();
+  const assess   = document.getElementById('guided-assessment').value;
+  if (!title && !goal) return '';
+  return `Course Title: ${title || 'Untitled'}
+Target Audience: ${audience || 'Not specified'}
+Learning Goal: ${goal || 'Not specified'}
+Duration: ${duration}
+Module Count: ${modules}
+Interaction Types: ${ixns || 'Not specified'}
+Assessment Type: ${assess}`;
+}
+
+function buildStage1Prompt(storyboardText) {
+  const pt = state.primaryTheory ? THEORIES[state.primaryTheory] : null;
+  const st = state.secondaryTheory ? THEORIES[state.secondaryTheory] : null;
+  const theoryContext = pt
+    ? `\nSELECTED PRIMARY THEORY: ${pt.name}\n${pt.system_context}\n${st ? `\nSELECTED SECONDARY THEORY: ${st.name}\n${st.system_context}` : ''}`
+    : '';
+  return `You are an instructional design analyst reviewing a storyboard for an eLearning course that will be built in Articulate Storyline 360.
+${theoryContext}
+Analyze the storyboard below and assess it across these dimensions:
+1. STRUCTURE — Can you identify discrete scenes or modules? Are slides or content blocks distinguishable?
+2. OBJECTIVES — Are learning objectives stated or clearly implied?
+3. INTERACTIONS — Are interaction types mentioned or implied (quiz, scenario, drag-drop, etc.)?
+4. BRANCHING — Is there any conditional logic, scenario branching, or learner-choice content?
+5. COMPLETENESS — Is there enough detail to generate a slide-level build plan?
+${pt ? `6. THEORY FIT — Does the storyboard structure align with ${pt.name}? Note any theory-specific gaps.` : ''}
+
+Return your assessment as JSON in this EXACT structure (no markdown, no code fences — raw JSON only):
+{
+  "can_proceed": true,
+  "confidence": "high",
+  "objectives_found": true,
+  "branching_detected": false,
+  "interaction_types_detected": ["MCQ", "click-to-reveal"],
+  "scene_count_estimate": 3,
+  "slide_count_estimate": 12,
+  "gaps": [
+    { "severity": "block", "issue": "description", "fix": "suggestion" }
+  ],
+  "theory_fit": "brief note if theory was selected, else null",
+  "summary": "2-3 sentence plain-English assessment"
+}
+Severity values: "block" (must fix), "warn" (review), "note" (consider).
+
+STORYBOARD:
+${storyboardText}`;
+}
+
+function buildStage2Prompt(storyboardText, stage1Result) {
+  const pt = state.primaryTheory ? THEORIES[state.primaryTheory] : null;
+  const st = state.secondaryTheory ? THEORIES[state.secondaryTheory] : null;
+  const theoryContext = pt
+    ? `\nPRIMARY THEORY: ${pt.name}\n${pt.system_context}\nSTAGE 2 RULES:\n${pt.stage2_rules || 'None'}\n${st ? `\nSECONDARY THEORY: ${st.name}\n${st.system_context}` : ''}`
+    : '';
+  const coverageRequest = pt?.coverage_events
+    ? `\nAlso produce a "theory_coverage" array with one entry per coverage event: { "event": "name", "covered": true/false, "slide_ids": ["S1.1"] }.`
+    : '';
+  return `You are an Articulate Storyline 360 course architect. Convert this storyboard into a structured slide plan.
+${theoryContext}
+ANALYSIS CONTEXT:
+- Estimated scenes: ${stage1Result.scene_count_estimate}
+- Estimated slides: ${stage1Result.slide_count_estimate}
+- Branching detected: ${stage1Result.branching_detected}
+- Interaction types identified: ${(stage1Result.interaction_types_detected || []).join(', ')}
+
+SLIDE TYPE values (use ONLY these): TITLE | CONTENT | KNOWLEDGE_CHECK | SCENARIO | SUMMARY | MENU | TRANSITION
+INTERACTION values (use ONLY these): NONE | MCQ | MULTI_SELECT | DRAG_DROP | CLICK_REVEAL | HOTSPOT | SLIDER | FREEFORM | BRANCH_2PATH | BRANCH_3PATH | BRANCH_HUB | OTHER
+MEDIA values: NONE | AUDIO | VIDEO | IMAGE | MULTIPLE
+
+RULES:
+- Group slides into scenes (S1, S2, etc.)
+- Slide IDs: S1.1, S1.2, S2.1, etc.
+- Estimate layer count per slide (base = 1)
+- needs_variables: true if any conditional logic or tracking is implied
+- is_branch_node: true if slide involves learner choice/branching
+- theory_tag: tag based on selected theory, or null if no theory
+- Keep slide titles concise (5 words max)
+- If ambiguous, default interaction to NONE and add a note
+${coverageRequest}
+
+Return raw JSON only (no markdown, no code fences):
+{
+  "course_title": "string",
+  "total_scenes": 3,
+  "total_slides": 12,
+  "scenes": [
+    {
+      "scene_id": "S1",
+      "scene_title": "Introduction",
+      "slides": [
+        {
+          "slide_id": "S1.1",
+          "slide_title": "Title Slide",
+          "slide_type": "TITLE",
+          "interaction": "NONE",
+          "layer_count": 1,
+          "media_flag": "NONE",
+          "needs_variables": false,
+          "is_branch_node": false,
+          "theory_tag": null,
+          "notes": ""
+        }
+      ]
+    }
+  ],
+  "theory_coverage": null
+}
+
+STORYBOARD:
+${storyboardText}`;
+}
+
+async function callAI(prompt) {
+  if (!state.apiKey) throw new Error('No API key set. Go to Settings and add your API key.');
+  const model = state.model;
+  if (model === 'claude') {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': state.apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5',
+        max_tokens: 8192,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error?.message || `API error ${res.status}`);
+    }
+    const data = await res.json();
+    return data.content[0].text;
+  }
+  if (model === 'openai') {
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.apiKey}` },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 8192
+      })
+    });
+    if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error?.message || `API error ${res.status}`); }
+    const data = await res.json();
+    return data.choices[0].message.content;
+  }
+  if (model === 'gemini') {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${state.apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+    });
+    if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error?.message || `API error ${res.status}`); }
+    const data = await res.json();
+    return data.candidates[0].content.parts[0].text;
+  }
+  throw new Error('Unsupported model. Only Claude, GPT-4o, and Gemini are supported.');
+}
+
+function parseJSON(text) {
+  // Strip markdown fences
+  let clean = text.replace(/^```json\s*/,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
+  // Extract the outermost JSON object — handles prose before/after and truncation
+  const start = clean.indexOf('{');
+  const end   = clean.lastIndexOf('}');
+  if (start === -1) throw new Error('No JSON object found in AI response');
+  if (end === -1 || end <= start) throw new Error('JSON response appears to be truncated — try a shorter storyboard or switch to a model with a larger context window');
+  clean = clean.slice(start, end + 1);
+  try {
+    return JSON.parse(clean);
+  } catch(e) {
+    // Last-resort: attempt to close truncated arrays/objects
+    // Count unclosed brackets
+    let opens = 0, oSquare = 0;
+    for (const c of clean) {
+      if (c === '{') opens++; else if (c === '}') opens--;
+      if (c === '[') oSquare++; else if (c === ']') oSquare--;
+    }
+    let patched = clean;
+    // Close any trailing comma before we close structures
+    patched = patched.replace(/,\s*$/, '');
+    while (oSquare > 0) { patched += ']'; oSquare--; }
+    while (opens > 0)  { patched += '}'; opens--; }
+    return JSON.parse(patched);
+  }
+}
+
+async function runStage1() {
+  const sb = getStoryboardInput();
+  if (!sb) {
+    showS1Alert('error','Please paste a storyboard or fill in the guided entry fields.');
+    return;
+  }
+  if (!state.primaryTheory) {
+    showS1Alert('warn','No theory selected — the pipeline will run without theory-specific tagging. You can still proceed.');
+  }
+  if (!state.apiKey) {
+    showS1Alert('error','No API key set. Go to Settings and add your API key first.');
+    return;
+  }
+  state.storyboardText = sb;
+  const btn = document.getElementById('btn-analyze');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Analyzing…';
+  document.getElementById('s1-result').innerHTML = '';
+  document.getElementById('s1-status').textContent = 'Running quality check…';
+  try {
+    const prompt = buildStage1Prompt(sb);
+    const raw = await callAI(prompt);
+    const result = parseJSON(raw);
+    state.stage1Result = result;
+    renderS1Result(result);
+
+    if (result.can_proceed) {
+      document.getElementById('s1-status').textContent = 'Analysis complete — running mapper…';
+      btn.innerHTML = '<span class="spinner"></span> Mapping slides…';
+      await runStage2(sb, result);
+    }
+  } catch(e) {
+    showS1Alert('error', e.message);
+    document.getElementById('s1-status').textContent = '';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<span>Analyze Storyboard →</span>';
+    document.getElementById('s1-status').textContent = '';
+  }
+}
+
+function showS1Alert(type, msg) {
+  const icons = { error:'⚠', warn:'⚠', info:'ℹ' };
+  document.getElementById('s1-result').innerHTML = `
+    <div class="alert alert-${type === 'error' ? 'error' : type === 'warn' ? 'warn' : 'info'}">
+      <span class="alert-icon">${icons[type]}</span>
+      <div class="alert-body">${msg}</div>
+    </div>`;
+}
+
+function renderS1Result(result) {
+  let html = '';
+  const confColor = result.confidence === 'high' ? 'green' : result.confidence === 'medium' ? 'amber' : 'red';
+  html += `<div class="card">
+    <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;margin-bottom:12px">
+      <span class="badge badge-${result.can_proceed ? 'green':'red'}">${result.can_proceed ? '✓ Ready to Map' : '✗ Needs Attention'}</span>
+      <span class="badge badge-${confColor}">Confidence: ${result.confidence}</span>
+      ${result.branching_detected ? '<span class="badge badge-blue">Branching Detected</span>' : ''}
+      ${result.objectives_found ? '<span class="badge badge-green">Objectives Found</span>' : '<span class="badge badge-amber">No Objectives</span>'}
+    </div>
+    <p style="font-size:13px;color:var(--fg-mid);line-height:1.6;margin-bottom:12px">${result.summary}</p>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--fg-muted)">
+      <span>🎬 ~${result.scene_count_estimate} scenes</span>
+      <span>🗂 ~${result.slide_count_estimate} slides</span>
+      <span>🎯 ${(result.interaction_types_detected||[]).join(', ') || 'No interactions identified'}</span>
+    </div>`;
+  if (result.gaps && result.gaps.length > 0) {
+    html += `<hr class="divider">`;
+    for (const g of result.gaps) {
+      const sev = g.severity === 'block' ? 'error' : g.severity === 'warn' ? 'warn' : 'info';
+      html += `<div class="alert alert-${sev}" style="margin-bottom:8px">
+        <span class="alert-icon">${g.severity === 'block' ? '🚫' : g.severity === 'warn' ? '⚠' : 'ℹ'}</span>
+        <div class="alert-body"><strong>${g.severity.toUpperCase()}: ${g.issue}</strong><span style="display:block;margin-top:2px;font-size:12px">Fix: ${g.fix}</span></div>
+      </div>`;
+    }
+  }
+  if (result.theory_fit) {
+    html += `<hr class="divider"><div style="font-size:12px;color:var(--fg-mid)"><strong>Theory Fit:</strong> ${result.theory_fit}</div>`;
+  }
+  html += `</div>`;
+  document.getElementById('s1-result').innerHTML = html;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   STAGE 2 — MAPPER
+═══════════════════════════════════════════════════════════════════════ */
+const SLIDE_TYPES = ['TITLE','CONTENT','KNOWLEDGE_CHECK','SCENARIO','SUMMARY','MENU','TRANSITION'];
+const INTERACTIONS = ['NONE','MCQ','MULTI_SELECT','DRAG_DROP','CLICK_REVEAL','HOTSPOT','SLIDER','FREEFORM','BRANCH_2PATH','BRANCH_3PATH','BRANCH_HUB','OTHER'];
+const MEDIA_FLAGS  = ['NONE','AUDIO','VIDEO','IMAGE','MULTIPLE'];
+
+async function runStage2(storyboardText, stage1Result) {
+  unlockStage('mapper');
+  goStage('mapper');
+  document.getElementById('slide-table-loading').style.display = 'flex';
+  document.getElementById('mapper-loading-text').textContent = 'Mapping storyboard to slides…';
+  document.getElementById('mapper-alerts').innerHTML = '';
+  try {
+    const prompt = buildStage2Prompt(storyboardText, stage1Result);
+    const raw = await callAI(prompt);
+    const plan = parseJSON(raw);
+    state.slidePlan = plan;
+    state.theoryCoverage = plan.theory_coverage;
+    renderSlidePlan(plan);
+    renderMapperBanner();
+    renderCoverageChart();
+    markStageDone('ingest');
+  } catch(e) {
+    document.getElementById('mapper-alerts').innerHTML = `
+      <div class="alert alert-error"><span class="alert-icon">⚠</span>
+      <div class="alert-body"><strong>Mapper error</strong><br>${e.message}</div></div>`;
+  } finally {
+    document.getElementById('slide-table-loading').style.display = 'none';
+  }
+}
+
+function renderMapperBanner() {
+  if (!state.primaryTheory) { document.getElementById('mapper-theory-banner').innerHTML=''; return; }
+  const pt = THEORIES[state.primaryTheory];
+  const st = state.secondaryTheory ? THEORIES[state.secondaryTheory] : null;
+  document.getElementById('mapper-theory-banner').innerHTML = `
+    <div class="alert alert-info">
+      <span class="alert-icon">📐</span>
+      <div class="alert-body">
+        <strong>Theory: ${pt.name}${st ? ` + ${st.name}` : ''}</strong>
+        Slide plan is tagged using ${pt.name} conventions.
+        ${pt.tier === 1 ? 'Full pipeline integration active.' : pt.tier === 2 ? 'Stage 2 tagging active.' : 'Context applied.'}
+      </div>
+    </div>`;
+}
+
+function renderSlidePlan(plan) {
+  const tbody = document.getElementById('slide-tbody');
+  document.getElementById('slide-plan-meta').textContent =
+    `${plan.course_title || 'Untitled'} · ${plan.total_scenes} scenes · ${plan.total_slides} slides`;
+  let rows = '';
+  for (const scene of plan.scenes) {
+    rows += `<tr class="scene-row">
+      <td colspan="11" style="padding:8px 10px">
+        ${scene.scene_id}: ${scene.scene_title}
+      </td>
+    </tr>`;
+    for (const slide of scene.slides) {
+      const typeOpts = SLIDE_TYPES.map(t => `<option${t===slide.slide_type?' selected':''}>${t}</option>`).join('');
+      const ixnOpts  = INTERACTIONS.map(t => `<option${t===slide.interaction?' selected':''}>${t}</option>`).join('');
+      const mediaOpts= MEDIA_FLAGS.map(t => `<option${t===slide.media_flag?' selected':''}>${t}</option>`).join('');
+      const needsVar = slide.needs_variables;
+      const isBranch = slide.is_branch_node;
+      rows += `<tr data-slide="${slide.slide_id}">
+        <td style="font-family:'JetBrains Mono',monospace;font-size:11px;white-space:nowrap">${slide.slide_id}</td>
+        <td><input type="text" value="${escHtml(slide.slide_title)}" style="min-width:120px" onchange="updateSlide('${slide.slide_id}','slide_title',this.value)"></td>
+        <td><select onchange="updateSlide('${slide.slide_id}','slide_type',this.value)">${typeOpts}</select></td>
+        <td><select onchange="updateSlide('${slide.slide_id}','interaction',this.value)">${ixnOpts}</select></td>
+        <td><input type="text" value="${slide.layer_count||1}" style="width:44px;text-align:center" onchange="updateSlide('${slide.slide_id}','layer_count',+this.value)"></td>
+        <td><select onchange="updateSlide('${slide.slide_id}','media_flag',this.value)">${mediaOpts}</select></td>
+        <td style="text-align:center">
+          <button class="flag-btn ${needsVar?'on-var':''}" onclick="toggleFlag('${slide.slide_id}','needs_variables',this)" title="Needs Variables">V</button>
+        </td>
+        <td style="text-align:center">
+          <button class="flag-btn ${isBranch?'on-branch':''}" onclick="toggleFlag('${slide.slide_id}','is_branch_node',this)" title="Branch Node">B</button>
+        </td>
+        <td style="font-size:11px;color:var(--fg-muted)">${escHtml(slide.theory_tag||'')}</td>
+        <td><input type="text" value="${escHtml(slide.notes||'')}" style="min-width:140px" onchange="updateSlide('${slide.slide_id}','notes',this.value)"></td>
+        <td><button class="btn btn-ghost btn-sm btn-icon" onclick="deleteSlide('${slide.slide_id}')" title="Remove slide">✕</button></td>
+      </tr>`;
+    }
+  }
+  tbody.innerHTML = rows;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function updateSlide(id, field, value) {
+  for (const scene of (state.slidePlan?.scenes || [])) {
+    const slide = scene.slides.find(s => s.slide_id === id);
+    if (slide) { slide[field] = value; return; }
+  }
+}
+
+function toggleFlag(id, field, btn) {
+  for (const scene of (state.slidePlan?.scenes || [])) {
+    const slide = scene.slides.find(s => s.slide_id === id);
+    if (slide) {
+      slide[field] = !slide[field];
+      if (field === 'needs_variables') {
+        btn.classList.toggle('on-var', slide[field]);
+      } else {
+        btn.classList.toggle('on-branch', slide[field]);
+      }
+      return;
+    }
+  }
+}
+
+function deleteSlide(id) {
+  for (const scene of (state.slidePlan?.scenes || [])) {
+    const idx = scene.slides.findIndex(s => s.slide_id === id);
+    if (idx !== -1) {
+      scene.slides.splice(idx, 1);
+      document.querySelector(`tr[data-slide="${id}"]`)?.remove();
+      state.slidePlan.total_slides = Math.max(0, state.slidePlan.total_slides - 1);
+      document.getElementById('slide-plan-meta').textContent =
+        `${state.slidePlan.course_title || 'Untitled'} · ${state.slidePlan.total_scenes} scenes · ${state.slidePlan.total_slides} slides`;
+      return;
+    }
+  }
+}
+
+function addSlideRow() {
+  const plan = state.slidePlan;
+  if (!plan || !plan.scenes.length) return;
+  const lastScene = plan.scenes[plan.scenes.length - 1];
+  const lastNum = lastScene.slides.length + 1;
+  const newSlide = {
+    slide_id: `${lastScene.scene_id}.${lastNum}`,
+    slide_title: 'New Slide',
+    slide_type: 'CONTENT',
+    interaction: 'NONE',
+    layer_count: 1,
+    media_flag: 'NONE',
+    needs_variables: false,
+    is_branch_node: false,
+    theory_tag: null,
+    notes: ''
+  };
+  lastScene.slides.push(newSlide);
+  plan.total_slides++;
+  renderSlidePlan(plan);
+}
+
+function exportSlidePlan() {
+  if (!state.slidePlan) return;
+  const rows = [['Slide ID','Title','Type','Interaction','Layers','Media','Needs Vars','Branch Node','Theory Tag','Notes']];
+  for (const scene of state.slidePlan.scenes) {
+    for (const s of scene.slides) {
+      rows.push([s.slide_id, s.slide_title, s.slide_type, s.interaction, s.layer_count, s.media_flag, s.needs_variables, s.is_branch_node, s.theory_tag||'', s.notes||'']);
+    }
+  }
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'slide-plan.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   THEORY COVERAGE CHART
+═══════════════════════════════════════════════════════════════════════ */
+function renderCoverageChart() {
+  const container = document.getElementById('theory-coverage-container');
+  const compContainer = document.getElementById('compliance-container');
+  if (!state.primaryTheory || !state.theoryCoverage) {
+    container.innerHTML = '';
+    compContainer.innerHTML = '';
+    return;
+  }
+  const pt = THEORIES[state.primaryTheory];
+  if (!pt.coverage_events || !state.theoryCoverage) {
+    container.innerHTML = '';
+    compContainer.innerHTML = '';
+    return;
+  }
+  const covered = state.theoryCoverage.filter(e => e.covered).length;
+  const total   = state.theoryCoverage.length;
+  const pct     = Math.round((covered / total) * 100);
+  let html = `<div class="card" style="margin-top:16px">
+    <div class="coverage-title">${pt.name} — Coverage Map</div>
+    <div class="coverage-wrap">`;
+  for (const ev of state.theoryCoverage) {
+    const slides = (ev.slide_ids || []).join(', ');
+    html += `<div class="coverage-row">
+      <div class="coverage-event">${ev.event}</div>
+      <div class="coverage-bar-wrap"><div class="coverage-bar ${ev.covered?'covered':'missing'}" style="width:${ev.covered?'100%':'30%'}"></div></div>
+      <div class="coverage-status ${ev.covered?'':''}">
+        ${ev.covered
+          ? `<span style="color:var(--green);font-weight:600;font-size:11px">✓ ${slides}</span>`
+          : `<span style="color:var(--red);font-size:11px">Missing</span>`}
+      </div>
+    </div>`;
+  }
+  html += `</div></div>`;
+  container.innerHTML = html;
+
+  const pctColor = pct >= 80 ? 'var(--green)' : pct >= 60 ? 'var(--amber)' : 'var(--red)';
+  compContainer.innerHTML = `<div class="compliance-summary" style="margin-top:0">
+    <div class="compliance-stat">
+      <div class="compliance-num" style="color:${pctColor}">${pct}%</div>
+      <div class="compliance-lbl">Theory Coverage</div>
+    </div>
+    <div class="compliance-stat">
+      <div class="compliance-num" style="color:var(--green)">${covered}</div>
+      <div class="compliance-lbl">Events Covered</div>
+    </div>
+    <div class="compliance-stat">
+      <div class="compliance-num" style="color:var(--red)">${total - covered}</div>
+      <div class="compliance-lbl">Events Missing</div>
+    </div>
+    <div class="compliance-stat">
+      <div class="compliance-num">${state.slidePlan?.total_slides||0}</div>
+      <div class="compliance-lbl">Total Slides</div>
+    </div>
+  </div>`;
+}
+
+function proceedToStage3() {
+  if (!state.slidePlan) return;
+  unlockStage('planner');
+  markStageDone('mapper');
+  goStage('planner');
+  runStage3();
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   STAGE 3 — VARIABLE & TRIGGER PLANNER
+═══════════════════════════════════════════════════════════════════════ */
+const VAR_TYPES  = ['Number','True/False','Text'];
+const VAR_SCOPES = ['project','slide'];
+
+function getFilteredSlides() {
+  // Only send slides that need variables or have interactions
+  const result = [];
+  for (const scene of (state.slidePlan?.scenes || [])) {
+    for (const slide of scene.slides) {
+      if (slide.needs_variables || slide.interaction !== 'NONE' || slide.is_branch_node) {
+        result.push({ scene_id: scene.scene_id, ...slide });
+      }
+    }
+  }
+  return result;
+}
+
+function buildStage3Prompt(filteredSlides) {
+  const pt = state.primaryTheory ? THEORIES[state.primaryTheory] : null;
+  const st = state.secondaryTheory ? THEORIES[state.secondaryTheory] : null;
+  const theoryRules = pt?.stage3_rules
+    ? `\nTHEORY STAGE 3 RULES (${pt.name}):\n${pt.stage3_rules}\n${st?.stage3_rules ? `\nSECONDARY THEORY RULES (${st.name}):\n${st.stage3_rules}` : ''}`
+    : '';
+
+  const slideList = filteredSlides.map(s =>
+    `- ${s.slide_id}: "${s.slide_title}" | Type: ${s.slide_type} | Interaction: ${s.interaction} | Branch: ${s.is_branch_node} | Media: ${s.media_flag} | Notes: ${s.notes || 'none'}`
+  ).join('\n');
+
+  return `You are an Articulate Storyline 360 technical architect. Generate a variable register and trigger plan for this eLearning course.
+${theoryRules}
+
+COURSE: ${state.slidePlan?.course_title || 'Untitled'}
+SLIDES REQUIRING VARIABLES OR TRIGGERS (${filteredSlides.length} of ${state.slidePlan?.total_slides} total):
+${slideList}
+
+STORYLINE VARIABLE NAMING RULES (strict — apply to ALL variable names):
+- Number variables: prefix "n" (e.g. nAttempts_Q1, nScore, nCorrectCount)
+- True/False variables: prefix "b" (e.g. bScenarioPassed, bVisited_S2_1)
+- Text variables: prefix "s" (e.g. sUserChoice, sLastAnswer)
+- camelCase throughout, no spaces, no special characters except underscore for grouping
+- Scope: "project" for variables used across slides; "slide" for local tracking
+
+TRIGGER ARCHITECTURE RULES (Storyline conventions):
+- Each trigger has: order (1,2,3...), when (the event), object (what fires it), condition (if any), action (what happens)
+- "When" values: "timeline starts", "user clicks", "timeline ends", "variable changes", "state changes", "key pressed"
+- Always put feedback layer triggers AFTER the interaction trigger
+- Attempt-limiting triggers: check variable BEFORE allowing submission
+- Branch triggers: "Jump to slide X when user clicks Y if condition Z"
+
+Return raw JSON only (no markdown, no code fences):
+{
+  "master_variable_register": [
+    {
+      "name": "nAttempts_Q1",
+      "type": "Number",
+      "default_value": "0",
+      "scope": "project",
+      "used_in_slides": ["S2.3", "S2.4"],
+      "purpose": "Tracks quiz attempt count for slide S2.3"
+    }
+  ],
+  "slide_architectures": [
+    {
+      "slide_id": "S2.3",
+      "triggers": [
+        { "order": 1, "when": "user clicks", "object": "Submit button", "condition": "nAttempts_Q1 < 2", "action": "Submit interaction" },
+        { "order": 2, "when": "user clicks", "object": "Submit button", "condition": "nAttempts_Q1 >= 2", "action": "Show layer: Final Feedback" }
+      ],
+      "notes": "2-attempt MCQ with attempt counter"
+    }
+  ]
+}`;
+}
+
+async function runStage3() {
+  const filtered = getFilteredSlides();
+  if (!filtered.length) {
+    document.getElementById('planner-alerts').innerHTML = `
+      <div class="alert alert-info"><span class="alert-icon">ℹ</span>
+      <div class="alert-body">No slides flagged for variables or interactions in the confirmed plan. Add V or B flags in Stage 2 to generate architecture here.</div></div>`;
+    return;
+  }
+
+  document.getElementById('var-table-loading').style.display = 'flex';
+  document.getElementById('planner-alerts').innerHTML = '';
+
+  // Banner
+  if (state.primaryTheory) {
+    const pt = THEORIES[state.primaryTheory];
+    document.getElementById('planner-theory-banner').innerHTML = `
+      <div class="alert alert-info"><span class="alert-icon">📐</span>
+      <div class="alert-body"><strong>Theory: ${pt.name}</strong> — Stage 3 rules applied to trigger architecture.</div></div>`;
+  }
+
+  try {
+    const prompt = buildStage3Prompt(filtered);
+    const raw = await callAI(prompt);
+    const plan = parseJSON(raw);
+    state.stage3Result = plan;
+    renderVariableRegister(plan.master_variable_register || []);
+    renderTriggerAccordion(plan.slide_architectures || []);
+    document.getElementById('var-register-meta').textContent =
+      `${(plan.master_variable_register||[]).length} variables · ${(plan.slide_architectures||[]).length} slides with triggers`;
+  } catch(e) {
+    document.getElementById('planner-alerts').innerHTML = `
+      <div class="alert alert-error"><span class="alert-icon">⚠</span>
+      <div class="alert-body"><strong>Planner error</strong><br>${e.message}</div></div>`;
+  } finally {
+    document.getElementById('var-table-loading').style.display = 'none';
+  }
+}
+
+function renderVariableRegister(vars) {
+  const tbody = document.getElementById('var-tbody');
+  if (!vars.length) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--fg-muted);padding:20px;font-size:12px">No variables generated</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = vars.map((v, i) => {
+    const typeOpts  = VAR_TYPES.map(t  => `<option${t===v.type?' selected':''}>${t}</option>`).join('');
+    const scopeOpts = VAR_SCOPES.map(s => `<option${s===v.scope?' selected':''}>${s}</option>`).join('');
+    const typeColor = v.type === 'Number' ? 'var(--accent)' : v.type === 'True/False' ? 'var(--green)' : 'var(--gold)';
+    return `<tr data-var-idx="${i}">
+      <td><input type="text" value="${escHtml(v.name)}" style="font-family:'JetBrains Mono',monospace;font-size:11px;min-width:140px" onchange="updateVar(${i},'name',this.value)"></td>
+      <td><select onchange="updateVar(${i},'type',this.value)" style="color:${typeColor}">${typeOpts}</select></td>
+      <td><input type="text" value="${escHtml(v.default_value||'')}" style="width:60px;text-align:center" onchange="updateVar(${i},'default_value',this.value)"></td>
+      <td><select onchange="updateVar(${i},'scope',this.value)">${scopeOpts}</select></td>
+      <td style="font-size:11px;color:var(--fg-muted)">${(v.used_in_slides||[]).join(', ')}</td>
+      <td><input type="text" value="${escHtml(v.purpose||'')}" style="min-width:160px" onchange="updateVar(${i},'purpose',this.value)"></td>
+      <td><button class="btn btn-ghost btn-sm btn-icon" onclick="deleteVar(${i})" title="Remove">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function updateVar(idx, field, value) {
+  if (state.stage3Result?.master_variable_register?.[idx]) {
+    state.stage3Result.master_variable_register[idx][field] = value;
+  }
+}
+
+function deleteVar(idx) {
+  state.stage3Result?.master_variable_register?.splice(idx, 1);
+  renderVariableRegister(state.stage3Result?.master_variable_register || []);
+}
+
+function addVarRow() {
+  const vars = state.stage3Result?.master_variable_register;
+  if (!vars) return;
+  vars.push({ name: 'nNewVariable', type: 'Number', default_value: '0', scope: 'project', used_in_slides: [], purpose: '' });
+  renderVariableRegister(vars);
+  document.getElementById('var-register-meta').textContent =
+    `${vars.length} variables · ${(state.stage3Result?.slide_architectures||[]).length} slides with triggers`;
+}
+
+function exportVarRegister() {
+  const vars = state.stage3Result?.master_variable_register;
+  if (!vars?.length) return;
+  const rows = [['Name','Type','Default','Scope','Used In','Purpose']];
+  for (const v of vars) rows.push([v.name, v.type, v.default_value, v.scope, (v.used_in_slides||[]).join('; '), v.purpose]);
+  const csv = rows.map(r => r.map(c => `"${String(c||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'variable-register.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function renderTriggerAccordion(slides) {
+  const container = document.getElementById('trigger-accordion');
+  if (!slides.length) {
+    container.innerHTML = `<div style="text-align:center;color:var(--fg-muted);padding:20px;font-size:12px">No trigger architectures generated</div>`;
+    return;
+  }
+  container.innerHTML = slides.map((s, si) => {
+    const triggers = (s.triggers || []).map((t, ti) => {
+      const condHtml = t.condition
+        ? `<span style="font-size:11px;color:var(--gold);font-family:'JetBrains Mono',monospace"> IF ${escHtml(t.condition)}</span>`
+        : '';
+      return `<div style="display:grid;grid-template-columns:28px 1fr;gap:8px;align-items:start;padding:7px 0;border-bottom:1px solid var(--border)">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--fg-muted);text-align:center;padding-top:2px">${t.order}</div>
+        <div>
+          <span class="badge badge-blue" style="font-size:10px;margin-right:4px">${escHtml(t.when)}</span>
+          <span style="font-size:12px;font-weight:600;color:var(--fg)">${escHtml(t.object)}</span>
+          ${condHtml}
+          <span style="font-size:12px;color:var(--fg-mid);margin-left:6px">→ ${escHtml(t.action)}</span>
+        </div>
+      </div>`;
+    }).join('');
+
+    return `<details style="border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;overflow:hidden" ${si===0?'open':''}>
+      <summary style="padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;background:var(--bg-subtle);list-style:none;user-select:none">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--fg-muted);flex-shrink:0">${escHtml(s.slide_id)}</span>
+        <span style="font-size:13px;font-weight:600;color:var(--fg);flex:1">${escHtml(getSlideTitle(s.slide_id))}</span>
+        <span class="badge badge-muted">${(s.triggers||[]).length} trigger${(s.triggers||[]).length!==1?'s':''}</span>
+      </summary>
+      <div style="padding:10px 14px">
+        ${triggers || '<div style="color:var(--fg-muted);font-size:12px">No triggers defined</div>'}
+        ${s.notes ? `<div style="margin-top:8px;font-size:11px;color:var(--fg-muted);font-style:italic">${escHtml(s.notes)}</div>` : ''}
+      </div>
+    </details>`;
+  }).join('');
+}
+
+function getSlideTitle(slideId) {
+  for (const scene of (state.slidePlan?.scenes || [])) {
+    const slide = scene.slides.find(s => s.slide_id === slideId);
+    if (slide) return slide.slide_title;
+  }
+  return slideId;
+}
+
+function proceedToStage4() {
+  if (!state.stage3Result) return;
+  unlockStage('validator');
+  markStageDone('planner');
+  goStage('validator');
+  initStage4();
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   STAGE 4 — BRANCHING LOGIC VALIDATOR
+═══════════════════════════════════════════════════════════════════════ */
+
+// Called when stage unlocks — populate the branch node confirmation UI
+function initStage4() {
+  const branchSlides = [];
+  for (const scene of (state.slidePlan?.scenes || [])) {
+    for (const slide of scene.slides) {
+      if (slide.is_branch_node || slide.interaction?.startsWith('BRANCH')) {
+        branchSlides.push({ ...slide, scene_id: scene.scene_id });
+      }
+    }
+  }
+  state.branchNodes = branchSlides;
+
+  const container = document.getElementById('branch-node-list');
+  if (!branchSlides.length) {
+    container.innerHTML = `<div style="color:var(--fg-muted);font-size:13px;padding:12px 0">
+      No branch nodes found. Go back to Stage 2 and flag slides as Branch Nodes (B) to enable validation.</div>`;
+    document.getElementById('btn-validate').disabled = true;
+    return;
+  }
+
+  // Build path confirmation form — for each branch node, ask user to list destination slide IDs
+  container.innerHTML = branchSlides.map((s, i) => {
+    const pathCount = s.interaction === 'BRANCH_3PATH' ? 3 : s.interaction === 'BRANCH_HUB' ? 4 : 2;
+    const pathInputs = Array.from({length: pathCount}, (_, pi) =>
+      `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span style="font-size:11px;color:var(--fg-muted);width:50px;flex-shrink:0">Path ${pi+1}</span>
+        <input type="text" class="path-dest" data-node="${s.slide_id}" data-path="${pi}"
+          placeholder="e.g. S2.4" style="width:100px"
+          value="${(state.branchPaths?.[s.slide_id]?.[pi]) || ''}">
+        <input type="text" class="path-label" data-node="${s.slide_id}" data-path="${pi}"
+          placeholder="Label (e.g. Correct path)" style="flex:1"
+          value="${(state.branchPathLabels?.[s.slide_id]?.[pi]) || ''}">
+      </div>`
+    ).join('');
+
+    return `<div style="border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--fg-muted)">${s.slide_id}</span>
+        <span style="font-size:13px;font-weight:600;color:var(--fg)">${escHtml(s.slide_title)}</span>
+        <span class="badge badge-blue" style="font-size:10px">${s.interaction}</span>
+      </div>
+      <div style="font-size:11px;color:var(--fg-muted);margin-bottom:8px">Enter the destination slide ID and a label for each branch path:</div>
+      ${pathInputs}
+    </div>`;
+  }).join('');
+}
+
+function collectBranchPaths() {
+  const paths = {};
+  const labels = {};
+  document.querySelectorAll('.path-dest').forEach(inp => {
+    const node = inp.dataset.node;
+    const pi   = +inp.dataset.path;
+    if (!paths[node]) paths[node] = [];
+    paths[node][pi] = inp.value.trim();
+  });
+  document.querySelectorAll('.path-label').forEach(inp => {
+    const node = inp.dataset.node;
+    const pi   = +inp.dataset.path;
+    if (!labels[node]) labels[node] = [];
+    labels[node][pi] = inp.value.trim();
+  });
+  state.branchPaths      = paths;
+  state.branchPathLabels = labels;
+  return { paths, labels };
+}
+
+function buildStage4Prompt() {
+  const pt = state.primaryTheory ? THEORIES[state.primaryTheory] : null;
+  const st = state.secondaryTheory ? THEORIES[state.secondaryTheory] : null;
+  const theoryRules = pt?.stage4_rules
+    ? `\nTHEORY BRANCHING RULES (${pt.name}):\n${pt.stage4_rules}\n${st?.stage4_rules ? `\nSECONDARY THEORY RULES (${st.name}):\n${st.stage4_rules}` : ''}`
+    : '';
+
+  // Build a full slide index for the AI to reference
+  const slideIndex = [];
+  for (const scene of (state.slidePlan?.scenes || [])) {
+    for (const s of scene.slides) {
+      slideIndex.push(`${s.slide_id}: "${s.slide_title}" [${s.slide_type}] [${s.interaction}]${s.is_branch_node?' [BRANCH]':''}${s.needs_variables?' [VAR]':''}`);
+    }
+  }
+
+  // Declared branch paths from the developer
+  const { paths, labels } = state.branchPaths
+    ? { paths: state.branchPaths, labels: state.branchPathLabels || {} }
+    : collectBranchPaths();
+
+  const branchDeclarations = (state.branchNodes || []).map(n => {
+    const nodePaths = paths[n.slide_id] || [];
+    const nodeLabels = labels[n.slide_id] || [];
+    const pathList = nodePaths
+      .filter(p => p)
+      .map((dest, i) => `  - Path ${i+1} "${nodeLabels[i] || `Path ${i+1}`}" → ${dest}`)
+      .join('\n');
+    return `Branch node: ${n.slide_id} "${n.slide_title}" (${n.interaction})\n${pathList || '  - No paths declared'}`;
+  }).join('\n\n');
+
+  return `You are a Storyline 360 branching logic validator. Analyze the branching architecture of this course for structural defects.
+${theoryRules}
+
+COURSE: ${state.slidePlan?.course_title || 'Untitled'}
+TOTAL SLIDES: ${state.slidePlan?.total_slides}
+
+FULL SLIDE INDEX:
+${slideIndex.join('\n')}
+
+DECLARED BRANCH PATHS (from developer):
+${branchDeclarations}
+
+VALIDATION RULES — check each of these:
+1. DEAD END — a branch path destination slide ID does not exist in the slide index
+2. MISSING FEEDBACK — a KNOWLEDGE_CHECK or SCENARIO slide has no slide within 2 slides that is type CONTENT or has "feedback" or "result" in its title
+3. ORPHANED SLIDE — a slide in the index that is never referenced as a destination from any branch path AND is not S1.1
+4. MISSING RETURN — a branch path that never rejoins the main flow (no subsequent slide leads back to a common continuation point)
+5. THEORY VIOLATION — any violation of the theory-specific branching rules listed above
+
+Severity levels:
+- BLOCK: course will not function correctly as built — fix before development
+- WARN: likely learner experience problem — strongly recommended to fix
+- NOTE: best-practice suggestion — worth considering
+
+For validated_paths: trace each declared path end-to-end (branch node → destination → next logical slides until another branch or end) and report its status.
+
+Return raw JSON only (no markdown, no code fences):
+{
+  "branch_summary": {
+    "overall_status": "PASS",
+    "branch_nodes_checked": 2,
+    "total_paths_checked": 4,
+    "issues_block": 0,
+    "issues_warn": 0,
+    "issues_note": 0
+  },
+  "issues": [
+    {
+      "severity": "BLOCK",
+      "issue_type": "DEAD_END",
+      "affected_slides": ["S2.3"],
+      "description": "Path 2 of branch node S2.3 points to slide S2.9 which does not exist in the slide plan.",
+      "fix": "Create slide S2.9 or update the branch path to an existing slide ID."
+    }
+  ],
+  "validated_paths": [
+    {
+      "path_id": "S2.3-P1",
+      "label": "Correct path",
+      "slides": ["S2.3", "S2.4", "S2.5"],
+      "status": "valid",
+      "notes": ""
+    }
+  ]
+}`;
+}
+
+async function runStage4() {
+  collectBranchPaths();
+  const btn = document.getElementById('btn-validate');
+  btn.disabled = true;
+  document.getElementById('validator-loading').style.display = 'block';
+  document.getElementById('validator-results').style.display  = 'none';
+  document.getElementById('validator-alerts').innerHTML = '';
+
+  try {
+    const prompt = buildStage4Prompt();
+    const raw = await callAI(prompt);
+    const result = parseJSON(raw);
+    state.stage4Result = result;
+    renderValidationResults(result);
+    document.getElementById('validator-results').style.display = 'block';
+    document.getElementById('validator-step1-card').style.display = 'none';
+  } catch(e) {
+    document.getElementById('validator-alerts').innerHTML = `
+      <div class="alert alert-error"><span class="alert-icon">⚠</span>
+      <div class="alert-body"><strong>Validator error</strong><br>${e.message}</div></div>`;
+  } finally {
+    btn.disabled = false;
+    document.getElementById('validator-loading').style.display = 'none';
+  }
+}
+
+function renderValidationResults(result) {
+  const s = result.branch_summary;
+  const statusColor = s.overall_status === 'PASS'
+    ? 'var(--green)'
+    : s.overall_status === 'PASS_WITH_WARNINGS' ? 'var(--amber)' : 'var(--red)';
+  const statusIcon  = s.overall_status === 'PASS' ? '✓' : s.overall_status === 'PASS_WITH_WARNINGS' ? '⚠' : '✗';
+  const statusLabel = s.overall_status === 'PASS' ? 'All paths valid'
+    : s.overall_status === 'PASS_WITH_WARNINGS' ? 'Passes with warnings' : 'Validation failed — blockers found';
+
+  document.getElementById('validation-status-banner').innerHTML = `
+    <div style="background:${statusColor}18;border:1.5px solid ${statusColor};border-radius:var(--radius-lg);padding:16px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      <div style="font-size:28px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:${statusColor}">${statusIcon}</div>
+      <div style="flex:1">
+        <div style="font-size:15px;font-weight:700;color:${statusColor}">${statusLabel}</div>
+        <div style="font-size:12px;color:var(--fg-muted);margin-top:2px">
+          ${s.branch_nodes_checked} branch node${s.branch_nodes_checked!==1?'s':''} · ${s.total_paths_checked} paths ·
+          ${s.issues_block} blocker${s.issues_block!==1?'s':''} · ${s.issues_warn} warning${s.issues_warn!==1?'s':''} · ${s.issues_note} note${s.issues_note!==1?'s':''}
+        </div>
+      </div>
+    </div>`;
+
+  // Issue counts
+  document.getElementById('issue-counts').innerHTML = [
+    s.issues_block ? `<span class="badge badge-red">${s.issues_block} BLOCK</span>` : '',
+    s.issues_warn  ? `<span class="badge badge-amber">${s.issues_warn} WARN</span>` : '',
+    s.issues_note  ? `<span class="badge badge-muted">${s.issues_note} NOTE</span>` : '',
+    (!s.issues_block && !s.issues_warn && !s.issues_note) ? `<span class="badge badge-green">No issues</span>` : ''
+  ].filter(Boolean).join('');
+
+  // Issues
+  const issueList = document.getElementById('issue-list');
+  if (!result.issues?.length) {
+    issueList.innerHTML = `<div style="color:var(--green);font-size:13px;padding:8px 0">✓ No issues found — all paths are structurally sound.</div>`;
+  } else {
+    const sevOrder = { BLOCK: 0, WARN: 1, NOTE: 2 };
+    const sorted = [...result.issues].sort((a,b) => (sevOrder[a.severity]||2) - (sevOrder[b.severity]||2));
+    issueList.innerHTML = sorted.map(issue => {
+      const sevClass = issue.severity === 'BLOCK' ? 'error' : issue.severity === 'WARN' ? 'warn' : 'info';
+      const sevIcon  = issue.severity === 'BLOCK' ? '🚫' : issue.severity === 'WARN' ? '⚠' : 'ℹ';
+      const typeLabel = (issue.issue_type || '').replace(/_/g,' ');
+      return `<div class="alert alert-${sevClass}" style="margin-bottom:8px">
+        <span class="alert-icon">${sevIcon}</span>
+        <div class="alert-body">
+          <strong>${issue.severity}: ${typeLabel}</strong>
+          ${issue.affected_slides?.length ? `<span style="font-family:'JetBrains Mono',monospace;font-size:10px;margin-left:6px;color:var(--fg-muted)">[${issue.affected_slides.join(', ')}]</span>` : ''}
+          <span style="display:block;margin-top:3px">${escHtml(issue.description)}</span>
+          ${issue.fix ? `<span style="display:block;margin-top:4px;font-size:11px;font-weight:600">Fix: ${escHtml(issue.fix)}</span>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // Path map
+  const pathMap = document.getElementById('path-map');
+  if (!result.validated_paths?.length) {
+    pathMap.innerHTML = `<div style="color:var(--fg-muted);font-size:12px">No paths to display.</div>`;
+  } else {
+    pathMap.innerHTML = result.validated_paths.map(path => {
+      const isValid = path.status === 'valid';
+      const pathColor = isValid ? 'var(--green)' : 'var(--amber)';
+      const slideChain = (path.slides || []).map((sid, i) => {
+        const title = getSlideTitle(sid);
+        return `<span style="display:inline-flex;align-items:center;gap:4px">
+          <span style="background:var(--bg-panel);border:1px solid var(--border);border-radius:4px;padding:2px 7px;font-size:11px;font-family:'JetBrains Mono',monospace">${escHtml(sid)}</span>
+          <span style="font-size:10px;color:var(--fg-muted);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(title)}">${escHtml(title)}</span>
+          ${i < path.slides.length-1 ? '<span style="color:var(--fg-muted);font-size:12px">→</span>' : ''}
+        </span>`;
+      }).join('');
+
+      return `<div style="border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <span style="font-size:12px;font-weight:700;color:${pathColor}">${isValid ? '✓' : '⚠'}</span>
+          <span style="font-size:12px;font-weight:600;color:var(--fg)">${escHtml(path.label || path.path_id)}</span>
+          <span class="badge badge-${isValid?'green':'amber'}" style="font-size:10px">${isValid?'Valid':'Has Issues'}</span>
+          <span style="font-size:11px;color:var(--fg-muted);font-family:'JetBrains Mono',monospace">${path.path_id}</span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center">
+          ${slideChain}
+        </div>
+        ${path.notes ? `<div style="margin-top:6px;font-size:11px;color:var(--fg-muted)">${escHtml(path.notes)}</div>` : ''}
+      </div>`;
+    }).join('');
+  }
+
+  // Enable export if no blockers
+  const exportBtn = document.getElementById('btn-to-stage5');
+  if (s.issues_block > 0) {
+    exportBtn.textContent = `Export Blocked (${s.issues_block} blocker${s.issues_block!==1?'s':''} must be fixed)`;
+    exportBtn.disabled = true;
+    exportBtn.classList.add('btn-secondary');
+    exportBtn.classList.remove('btn-primary');
+  }
+}
+
+function resetValidation() {
+  document.getElementById('validator-results').style.display  = 'none';
+  document.getElementById('validator-step1-card').style.display = 'block';
+  state.stage4Result = null;
+}
+
+function proceedToStage5() {
+  if (!state.stage4Result) return;
+  unlockStage('export');
+  markStageDone('validator');
+  goStage('export');
+  buildExport();
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   STAGE 5 — EXPORT BLUEPRINT
+   Assembles all prior stage outputs into a readable, copyable,
+   downloadable document. Pure client-side — no additional API call.
+═══════════════════════════════════════════════════════════════════════ */
+
+function switchExportTab(btn, panelId) {
+  document.querySelectorAll('#export-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#stage-export .tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(panelId)?.classList.add('active');
+}
+
+function pad(str, len) {
+  return String(str).padEnd(len);
+}
+
+function hr(char, len) {
+  return char.repeat(len);
+}
+
+function buildExport() {
+  const plan     = state.slidePlan;
+  const s1       = state.stage1Result;
+  const s3       = state.stage3Result;
+  const s4       = state.stage4Result;
+  const pt       = state.primaryTheory ? THEORIES[state.primaryTheory] : null;
+  const st       = state.secondaryTheory ? THEORIES[state.secondaryTheory] : null;
+  const today    = new Date().toLocaleDateString('en-IN', { year:'numeric', month:'long', day:'numeric' });
+
+  if (!plan) {
+    document.getElementById('export-alerts').innerHTML = `
+      <div class="alert alert-error"><span class="alert-icon">⚠</span>
+      <div class="alert-body">No slide plan found. Please complete Stages 1–4 first.</div></div>`;
+    return;
+  }
+
+  // ── SECTION 1: OVERVIEW ──────────────────────────────────────────────
+  const overviewLines = [
+    `STORYLINE BLUEPRINT`,
+    hr('═', 60),
+    ``,
+    `Course Title  : ${plan.course_title || 'Untitled'}`,
+    `Generated     : ${today}`,
+    `Total Scenes  : ${plan.total_scenes}`,
+    `Total Slides  : ${plan.total_slides}`,
+    ``,
+    `PRIMARY THEORY: ${pt ? pt.name : 'None selected'}`,
+    pt ? `  Tier        : ${pt.tier === 1 ? 'Full pipeline integration' : pt.tier === 2 ? 'Stage 2 tagging' : 'Context only'}` : '',
+    pt ? `  Category    : ${CATEGORIES[pt.category]?.label || pt.category}` : '',
+    st ? `SECONDARY THEORY: ${st.name}` : '',
+    ``,
+    `STORYBOARD ANALYSIS`,
+    hr('─', 40),
+    s1 ? `Confidence    : ${s1.confidence?.toUpperCase()}` : '',
+    s1 ? `Branching     : ${s1.branching_detected ? 'Yes' : 'No'}` : '',
+    s1 ? `Interactions  : ${(s1.interaction_types_detected||[]).join(', ') || 'None identified'}` : '',
+    s1 ? `Summary       : ${s1.summary}` : '',
+    ``,
+    s1?.gaps?.length ? `ANALYSIS GAPS (${s1.gaps.length})` : '',
+    s1?.gaps?.length ? hr('─', 40) : '',
+    ...(s1?.gaps || []).map(g => `  [${g.severity.toUpperCase()}] ${g.issue}\n         Fix: ${g.fix}`),
+    ``,
+    pt?.export_note ? `THEORY NOTE` : '',
+    pt?.export_note ? hr('─', 40) : '',
+    pt?.export_note ? pt.export_note : '',
+    st?.export_note ? st.export_note : '',
+  ].filter(l => l !== undefined && l !== null);
+
+  document.getElementById('exp-overview-content').textContent = overviewLines.join('\n');
+
+  // ── SECTION 2: SLIDE MAP ─────────────────────────────────────────────
+  const slideMapLines = [
+    `SLIDE MAP — ${plan.course_title || 'Untitled'}`,
+    hr('═', 70),
+    ``,
+    pad('SLIDE ID', 10) + pad('TITLE', 28) + pad('TYPE', 16) + pad('INTERACTION', 16) + pad('L', 3) + pad('MEDIA', 10) + 'FLAGS',
+    hr('─', 90),
+  ];
+  for (const scene of (plan.scenes || [])) {
+    slideMapLines.push(``, `  SCENE ${scene.scene_id}: ${scene.scene_title}`, hr('·', 60));
+    for (const s of scene.slides) {
+      const flags = [
+        s.needs_variables ? '[VAR]' : '',
+        s.is_branch_node  ? '[BRANCH]' : '',
+        s.theory_tag      ? `[${s.theory_tag}]` : '',
+      ].filter(Boolean).join(' ');
+      slideMapLines.push(
+        `  ${pad(s.slide_id,8)}  ${pad(s.slide_title,26)}  ${pad(s.slide_type,14)}  ${pad(s.interaction,14)}  ${pad(s.layer_count,2)}  ${pad(s.media_flag,8)}  ${flags}`
+      );
+      if (s.notes) slideMapLines.push(`           Note: ${s.notes}`);
+    }
+  }
+  if (state.theoryCoverage?.length) {
+    slideMapLines.push(``, ``, `THEORY COVERAGE — ${pt?.name}`, hr('─', 50));
+    for (const ev of state.theoryCoverage) {
+      slideMapLines.push(`  ${ev.covered ? '✓' : '✗'} ${pad(ev.event, 32)} ${ev.covered ? (ev.slide_ids||[]).join(', ') : 'NOT COVERED'}`);
+    }
+    const covPct = Math.round((state.theoryCoverage.filter(e=>e.covered).length / state.theoryCoverage.length)*100);
+    slideMapLines.push(``, `  Coverage: ${covPct}%`);
+  }
+  document.getElementById('exp-slidemap-content').textContent = slideMapLines.join('\n');
+
+  // ── SECTION 3: VARIABLES ─────────────────────────────────────────────
+  const vars = s3?.master_variable_register || [];
+  const varLines = [
+    `MASTER VARIABLE REGISTER — ${plan.course_title || 'Untitled'}`,
+    hr('═', 70),
+    `Total variables: ${vars.length}`,
+    ``,
+    pad('NAME', 28) + pad('TYPE', 12) + pad('DEFAULT', 10) + pad('SCOPE', 10) + 'USED IN',
+    hr('─', 80),
+  ];
+  for (const v of vars) {
+    varLines.push(`${pad(v.name,28)}${pad(v.type,12)}${pad(v.default_value||'',10)}${pad(v.scope,10)}${(v.used_in_slides||[]).join(', ')}`);
+    if (v.purpose) varLines.push(`  → ${v.purpose}`);
+  }
+  varLines.push(``, `NAMING CONVENTIONS`, hr('─',40),
+    `  n prefix → Number  (e.g. nAttempts_Q1, nScore)`,
+    `  b prefix → True/False (e.g. bScenarioPassed, bVisited)`,
+    `  s prefix → Text  (e.g. sUserChoice, sLastAnswer)`,
+    `  camelCase throughout · no spaces · underscore for grouping`
+  );
+  document.getElementById('exp-variables-content').textContent = varLines.join('\n');
+
+  // ── SECTION 4: TRIGGERS ──────────────────────────────────────────────
+  const archs = s3?.slide_architectures || [];
+  const trigLines = [
+    `TRIGGER ARCHITECTURE — ${plan.course_title || 'Untitled'}`,
+    hr('═', 70),
+    `Slides with triggers: ${archs.length}`,
+    ``,
+  ];
+  for (const arch of archs) {
+    const title = getSlideTitle(arch.slide_id);
+    trigLines.push(`${arch.slide_id}: ${title}`, hr('─', 50));
+    for (const t of (arch.triggers || [])) {
+      const cond = t.condition ? ` IF (${t.condition})` : '';
+      trigLines.push(`  ${pad(t.order+'.',3)} When [${t.when}] on [${t.object}]${cond}`);
+      trigLines.push(`       → ${t.action}`);
+    }
+    if (arch.notes) trigLines.push(`  Note: ${arch.notes}`);
+    trigLines.push('');
+  }
+  document.getElementById('exp-triggers-content').textContent = trigLines.join('\n');
+
+  // ── SECTION 5: VALIDATION ────────────────────────────────────────────
+  const valLines = [
+    `BRANCHING LOGIC VALIDATION REPORT — ${plan.course_title || 'Untitled'}`,
+    hr('═', 70),
+  ];
+  if (s4) {
+    const bs = s4.branch_summary;
+    valLines.push(
+      ``,
+      `Overall Status  : ${bs.overall_status}`,
+      `Branch nodes    : ${bs.branch_nodes_checked}`,
+      `Paths checked   : ${bs.total_paths_checked}`,
+      `Blockers        : ${bs.issues_block}`,
+      `Warnings        : ${bs.issues_warn}`,
+      `Notes           : ${bs.issues_note}`,
+      ``, `ISSUES`, hr('─', 50)
+    );
+    if (!s4.issues?.length) {
+      valLines.push('  No issues found — all paths structurally sound.');
+    } else {
+      for (const issue of s4.issues) {
+        valLines.push(
+          `  [${issue.severity}] ${issue.issue_type?.replace(/_/g,' ')} — ${(issue.affected_slides||[]).join(', ')}`,
+          `    ${issue.description}`,
+          `    Fix: ${issue.fix}`,
+          ''
+        );
+      }
+    }
+    valLines.push(``, `VALIDATED PATHS`, hr('─', 50));
+    for (const path of (s4.validated_paths || [])) {
+      valLines.push(
+        `  ${path.status === 'valid' ? '✓' : '⚠'} ${path.label || path.path_id} [${path.path_id}]`,
+        `    Path: ${(path.slides||[]).join(' → ')}`,
+        path.notes ? `    Note: ${path.notes}` : '',
+        ''
+      );
+    }
+  } else {
+    valLines.push('  Validation not run.');
+  }
+  document.getElementById('exp-validation-content').textContent = valLines.join('\n');
+
+  // ── SECTION 6: BUILD CHECKLIST ───────────────────────────────────────
+  buildChecklist(plan, vars, archs, s4);
+}
+
+function buildChecklist(plan, vars, archs, s4) {
+  const container = document.getElementById('exp-checklist-content');
+  const pt = state.primaryTheory ? THEORIES[state.primaryTheory] : null;
+  const branchSlides = [];
+  const varSlides    = [];
+  const interactives = [];
+  for (const scene of (plan.scenes || [])) {
+    for (const s of scene.slides) {
+      if (s.is_branch_node)   branchSlides.push(s);
+      if (s.needs_variables)  varSlides.push(s);
+      if (s.interaction !== 'NONE') interactives.push(s);
+    }
+  }
+
+  const sections = [
+    {
+      heading: '1. Project Setup',
+      items: [
+        'Create new Storyline 360 project · Story size: 720×540 or 16:9 widescreen',
+        `Set course title: "${plan.course_title || 'Untitled'}"`,
+        `Create ${plan.total_scenes} scene${plan.total_scenes!==1?'s':''} and name them as per slide map`,
+        'Set player skin, navigation, and menu settings',
+        'Configure LMS/SCORM settings (completion trigger, scoring)',
+      ]
+    },
+    {
+      heading: '2. Variable Setup',
+      items: vars.length
+        ? vars.map(v => `Create ${v.scope} variable: ${v.name} (${v.type}, default: ${v.default_value || '0'}) — ${v.purpose}`)
+        : ['No variables required for this course']
+    },
+    {
+      heading: '3. Slide Build Order',
+      items: [
+        ...plan.scenes.map(scene =>
+          `Build Scene ${scene.scene_id} "${scene.scene_title}" (${scene.slides.length} slide${scene.slides.length!==1?'s':''})`
+        )
+      ]
+    },
+    {
+      heading: '4. Interactive Slides',
+      items: interactives.length
+        ? interactives.map(s => `${s.slide_id} "${s.slide_title}" — ${s.interaction}${s.layer_count > 1 ? ` · ${s.layer_count} layers` : ''}`)
+        : ['No interactive slides in this course']
+    },
+    {
+      heading: '5. Trigger Implementation',
+      items: archs.length
+        ? archs.map(a => `${a.slide_id} "${getSlideTitle(a.slide_id)}" — ${(a.triggers||[]).length} trigger${(a.triggers||[]).length!==1?'s':''}`)
+        : ['No triggers required']
+    },
+    {
+      heading: '6. Branching Logic',
+      items: branchSlides.length
+        ? [
+            ...branchSlides.map(s => `Wire branch paths for ${s.slide_id} "${s.slide_title}" (${s.interaction})`),
+            ...(s4?.issues?.filter(i=>i.severity==='BLOCK').map(i => `⚠ FIX BLOCKER: ${i.issue_type?.replace(/_/g,' ')} on ${(i.affected_slides||[]).join(', ')}`)||[])
+          ]
+        : ['No branching in this course']
+    },
+    {
+      heading: '7. Media & Assets',
+      items: [
+        ...plan.scenes.flatMap(scene =>
+          scene.slides
+            .filter(s => s.media_flag !== 'NONE')
+            .map(s => `${s.slide_id} — requires ${s.media_flag} asset`)
+        ),
+      ].length ? [...plan.scenes.flatMap(scene =>
+          scene.slides
+            .filter(s => s.media_flag !== 'NONE')
+            .map(s => `${s.slide_id} "${s.slide_title}" — ${s.media_flag}`)
+        )] : ['No media assets flagged']
+    },
+    {
+      heading: '8. QA & Testing',
+      items: [
+        'Preview all scenes in browser — check navigation and completion',
+        interactives.length ? `Test all ${interactives.length} interactive slides — verify correct/incorrect feedback` : null,
+        branchSlides.length ? `Walk all branch paths — verify no dead ends` : null,
+        vars.length ? `Verify all ${vars.length} variables reset correctly on replay` : null,
+        'Test SCORM completion trigger in LMS (or use SCORM Cloud)',
+        'Check accessibility: tab order, alt text, contrast ratios',
+        pt ? `Verify ${pt.name} alignment against slide map theory tags` : null,
+      ].filter(Boolean)
+    },
+    {
+      heading: '9. Publish',
+      items: [
+        'Publish as SCORM 1.2 or 2004 (match LMS requirement)',
+        'Upload to LMS staging environment and smoke-test',
+        'Verify completion and score reporting in LMS gradebook',
+        'Archive .story source file and all assets',
+      ]
+    }
+  ];
+
+  container.innerHTML = sections.map(sec => `
+    <div style="margin-bottom:20px">
+      <div style="font-size:13px;font-weight:700;color:var(--fg);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border)">${sec.heading}</div>
+      ${sec.items.map(item => `
+        <label style="display:flex;align-items:flex-start;gap:10px;padding:5px 0;cursor:pointer;border-radius:4px">
+          <input type="checkbox" style="margin-top:2px;flex-shrink:0;accent-color:var(--accent)" onchange="this.closest('label').style.opacity=this.checked?'.45':'1'">
+          <span style="font-size:12.5px;color:var(--fg-mid)">${escHtml(item)}</span>
+        </label>`).join('')}
+    </div>`).join('');
+}
+
+function getFullBlueprintText() {
+  return [
+    document.getElementById('exp-overview-content')?.textContent   || '',
+    '\n\n',
+    document.getElementById('exp-slidemap-content')?.textContent   || '',
+    '\n\n',
+    document.getElementById('exp-variables-content')?.textContent  || '',
+    '\n\n',
+    document.getElementById('exp-triggers-content')?.textContent   || '',
+    '\n\n',
+    document.getElementById('exp-validation-content')?.textContent || '',
+  ].join('');
+}
+
+function downloadBlueprint() {
+  const text = getFullBlueprintText();
+  const title = (state.slidePlan?.course_title || 'blueprint').replace(/[^a-zA-Z0-9]+/g,'-').toLowerCase();
+  const blob = new Blob([text], {type:'text/plain'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = `${title}-blueprint.txt`; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function copyBlueprint() {
+  const text   = getFullBlueprintText();
+  const status = document.getElementById('export-copy-status');
+  navigator.clipboard.writeText(text).then(() => {
+    status.textContent = '✓ Copied to clipboard';
+    setTimeout(() => { status.textContent = ''; }, 3000);
+  }).catch(() => {
+    status.textContent = 'Select content manually — clipboard blocked';
+  });
+}
+
+function copySection(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const text = el.textContent || el.innerText || '';
+  navigator.clipboard.writeText(text).catch(() => {});
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════════════════════ */
+renderTheoryPicker();
+</script>
+</body>
+</html>

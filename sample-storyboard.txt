@@ -1,0 +1,254 @@
+────────────────────────────────────────────────────────────────
+  SAMPLE STORYBOARD — DATA PRIVACY AT WORK
+  For testing Storyline Blueprint end-to-end
+  Approx. 18 slides · 3 scenes · branching scenario · quiz
+────────────────────────────────────────────────────────────────
+
+COURSE OVERVIEW
+───────────────
+Title:    Data Privacy at Work: Handling Personal Information
+Audience: All employees who handle customer or HR data
+Duration: ~20 minutes
+LMS:      SCORM 2004, completion on passing quiz (≥80%)
+Format:   Scenario-driven with branching + 5-question scored quiz
+
+
+SCENE 1 — INTRODUCTION (Slides 1.1 to 1.3)
+─────────────────────────────────────────────
+
+Slide 1.1 — Why Data Privacy Matters
+Type: Title / Attention
+Narration: "Every day, you handle data that belongs to real people.
+  One wrong click can have serious consequences — for them and
+  for the company. This course walks you through how to protect
+  it."
+Visual: Animated header; stock image of a laptop with a lock icon.
+Media: Image + text animation
+Interaction: None
+Notes: Sets stakes. Gagné Event 1 (Gain Attention).
+
+Slide 1.2 — Learning Objectives
+Type: Objectives
+Narration: "By the end of this module you will be able to:
+  1. Identify what counts as personal data under our policy.
+  2. Apply the correct handling procedure for sensitive data.
+  3. Recognise and report a potential data breach."
+Visual: 3 objective cards with icons.
+Interaction: None
+Notes: Gagné Event 2 (Inform Objectives).
+
+Slide 1.3 — What You Already Know
+Type: Recall / Pre-assessment
+Narration: "Before we start — have you handled any of these
+  data types in the last week?"
+Visual: Checklist with 6 items (name, email, salary info,
+  health records, national ID, login credentials).
+Interaction: Multiple-select checklist (custom buttons,
+  no right/wrong — just activates the learner).
+Media: None
+Needs Variables: Yes (sCheckedItems to store selection,
+  shown in a recap on Slide 3.3)
+Notes: Gagné Event 3 (Stimulate Recall).
+
+
+SCENE 2 — THE SCENARIO (Slides 2.1 to 2.9)
+──────────────────────────────────────────────
+
+Slide 2.1 — Meet Priya
+Type: Content
+Narration: "Priya is an HR coordinator at Meridian Corp.
+  She's just received an email from a manager asking her to
+  forward the salary data of two employees to a new payroll
+  vendor. The email looks official. What should Priya do?"
+Visual: Illustrated character (Priya at desk), email mockup.
+Interaction: None
+Notes: Gagné Event 4 (Present Content). Sets up scenario.
+
+Slide 2.2 — Priya's Decision (BRANCH NODE)
+Type: Decision / Branch
+Narration: "What would you advise Priya to do?"
+Visual: 3 choice cards.
+Interaction: Branching scenario — 3 choices:
+  A → Slide 2.3 (Forward without checking — risky path)
+  B → Slide 2.5 (Verify vendor first — correct path)
+  C → Slide 2.7 (Escalate to manager — partial path)
+Needs Variables: Yes
+  · nDecisionAttempt (Number, default 0) — tracks retries
+  · sUserChoice (Text, default "") — stores choice
+  · bScenarioPassed (True/False, default False)
+Notes: Gagné Events 5+6 (Guidance + Practice). BRANCH NODE.
+
+──── PATH A: Forward Without Checking ────
+
+Slide 2.3 — Consequence: Breach Alert
+Type: Consequence / Feedback
+Narration: "Priya forwarded the data. Three hours later,
+  the IT team flagged an unauthorised data transfer.
+  The 'vendor' was a phishing address."
+Visual: Breach alert animation; red warning overlay.
+Interaction: None
+Notes: Incorrect path. Gagné Event 7 (Feedback — Incorrect).
+  Must link back to Slide 2.4 (retry prompt).
+
+Slide 2.4 — Try Again
+Type: Retry Prompt
+Narration: "This outcome could have been prevented.
+  Let's go back to Priya's decision."
+Visual: Reflective prompt with key reminder:
+  "Always verify recipient identity before sharing personal data."
+Interaction: Button → returns to Slide 2.2
+Needs Variables: Yes (nDecisionAttempt +1 on this slide)
+Notes: Retry loop. Second visit to 2.2 should show a hint.
+
+──── PATH B: Verify Vendor First ────
+
+Slide 2.5 — Correct Process
+Type: Guidance / Feedback
+Narration: "Priya contacted the manager by phone to confirm
+  the request, then checked the vendor against the approved
+  vendor register before sending the data via the encrypted
+  portal. Well done."
+Visual: 3-step checklist animation (verify → confirm →
+  encrypted transfer).
+Interaction: None
+Notes: Correct path. Gagné Event 7 (Feedback — Correct).
+  Sets bScenarioPassed = True.
+
+Slide 2.6 — Scenario Summary
+Type: Summary / Retention
+Narration: "Every data transfer involving personal information
+  must follow three steps: verify the recipient, confirm the
+  request through a secondary channel, and use an approved
+  transfer method."
+Visual: Summary card with the 3 rules; share/print button.
+Interaction: Next → proceeds to Scene 3
+Notes: Bridges to quiz. Gagné Event 8 (leads into assessment).
+
+──── PATH C: Escalate to Manager ────
+
+Slide 2.7 — Partial Credit Path
+Type: Consequence / Feedback
+Narration: "Escalating is a reasonable instinct, but the
+  manager confirmed the request was legitimate. The data
+  still needs to be sent — the right way."
+Visual: Manager conversation illustration.
+Interaction: None
+Notes: Partial credit path — leads to guidance before retry.
+
+Slide 2.8 — Correct Process (abbreviated)
+Type: Guidance
+Narration: "Even with approval, you must follow the
+  secure transfer process: verify the vendor on the register,
+  then use the encrypted portal."
+Visual: 2-step process (verify → encrypt).
+Interaction: Button → Slide 2.6 (same summary as Path B)
+Notes: Merges back to Path B summary. Gagné Event 7 (Feedback).
+
+──── ALL PATHS MERGE AT 2.9 ────
+
+Slide 2.9 — What The Policy Says
+Type: Content / Reference
+Narration: "Here's the relevant section of the Data Handling
+  Policy you can always refer back to."
+Visual: Styled policy excerpt (key clauses highlighted).
+Interaction: Accordion — 3 expandable policy clauses.
+Layers: 1 base layer + 1 reference layer (policy doc)
+Media: None
+Needs Variables: No
+Notes: Gagné Event 4 (Content) — reinforcement pass.
+
+
+SCENE 3 — KNOWLEDGE CHECK (Slides 3.1 to 3.6)
+────────────────────────────────────────────────
+
+Slide 3.1 — Quiz Introduction
+Type: Assessment Intro
+Narration: "You've got 5 questions. You need 80% to complete
+  the course. You can retake once if you don't pass the first time."
+Visual: Score tracker initialised at 0.
+Needs Variables: Yes
+  · nQuizScore (Number, default 0)
+  · nQuizAttempt (Number, default 0)
+  · bQuizPassed (True/False, default False)
+Interaction: None
+Notes: Gagné Event 8 (Assess Performance) — intro.
+
+Slide 3.2 — Question 1 (Multiple Choice)
+Type: Quiz — Graded
+Question: "Which of the following is NOT personal data
+  under our policy?"
+Choices: A) Employee salary   B) Company annual report ✓
+         C) Customer email     D) National ID number
+Correct: B
+Interaction: Multiple-choice pick-one
+Needs Variables: Yes (nQuizScore +1 if correct)
+Notes: Incorrect → feedback layer before auto-advance.
+
+Slide 3.3 — Question 2 (True/False)
+Type: Quiz — Graded
+Question: "It is acceptable to email personal data to a
+  verified vendor using your personal Gmail account."
+Correct: False
+Interaction: True/False buttons
+Needs Variables: Yes (nQuizScore +1 if correct)
+
+Slide 3.4 — Question 3 (Multiple Choice)
+Type: Quiz — Graded
+Question: "Priya suspects a data breach occurred yesterday.
+  What is the first thing she should do?"
+Choices: A) Notify the DPO within 24 hours ✓
+         B) Tell the affected employees first
+         C) Delete the affected files
+         D) Wait and monitor for 72 hours
+Correct: A
+Interaction: Multiple-choice pick-one
+Needs Variables: Yes (nQuizScore +1 if correct)
+
+Slide 3.5 — Question 4 (Multiple Choice)
+Type: Quiz — Graded
+Question: "Which of these is a secure method for
+  transferring sensitive employee data externally?"
+Choices: A) Encrypted email via the company portal ✓
+         B) WhatsApp with password-protected ZIP
+         C) USB drive sent by courier
+         D) Personal Dropbox link
+Correct: A
+Interaction: Multiple-choice pick-one
+Needs Variables: Yes (nQuizScore +1 if correct)
+
+Slide 3.6 — Question 5 (Scenario-based)
+Type: Quiz — Graded
+Question: "You receive an urgent request from someone
+  claiming to be a new manager, asking for your team's
+  salary roster. You have never met this person.
+  What do you do?"
+Choices: A) Send it — the request looks official
+         B) Verify the person's identity through HR,
+            then follow the data transfer process ✓
+         C) Forward to your manager and forget it
+         D) Decline all data requests from unfamiliar people
+Correct: B
+Interaction: Multiple-choice pick-one
+Needs Variables: Yes (nQuizScore +1 if correct)
+Notes: Final graded question. After this → results slide.
+
+Slide 3.7 — Results
+Type: Results Slide (not a quiz question — a custom results page)
+Narration (pass ≥80%): "Great work! You've completed
+  Data Privacy at Work. Certificate issued."
+Narration (fail <80%): "You didn't reach the passing score
+  this time. Review the key points and try once more."
+Visual: Score display (n out of 5), pass/fail message,
+  retry button (if fail + nQuizAttempt < 2).
+Interaction:
+  · Pass path → LMS complete trigger, certificate link
+  · Fail + attempts < 2 → Retry button (back to 3.1)
+  · Fail + attempts = 2 → Locked, review-only mode
+Needs Variables: Yes (reads nQuizScore, nQuizAttempt, bQuizPassed)
+Needs Variables: Yes (bQuizPassed = True if nQuizScore ≥ 4)
+Notes: Gagné Event 9 (Enhance Retention — links to job aid).
+  Final slide. SCORM completion fires here.
+
+────────────────────────────────────────────────────────────────
+  END OF STORYBOARD
+────────────────────────────────────────────────────────────────
